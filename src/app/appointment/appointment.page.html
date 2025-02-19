@@ -1,0 +1,100 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Appointment</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Doctor Profile Card -->
+  <ion-card class="doctor-card">
+    <div class="doctor-container">
+      <!-- Left: Doctor Image -->
+      <div class="doctor-image">
+        <img src="assets/images/doctor1.jpg" alt="Doctor Image" />
+      </div>
+
+      <!-- Right: Doctor Info -->
+      <div class="doctor-details">
+        <span class="specialty">Dermatologist</span>
+        <h2>Dr. James Gun</h2>
+        <p class="email">jamesgunn&#64;gmail.com</p>
+
+        <!-- Stats Section -->
+        <div class="doctor-stats">
+          <div class="stat-item">
+            <ion-icon name="star"></ion-icon>
+            <span>4.9</span>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="time"></ion-icon>
+            <span>12 years</span>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="people"></ion-icon>
+            <span>2 left</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ion-card>
+  <!-- Doctor's Availability (Days & Hours) -->
+  <div class="doctor-availability">
+    <ion-label class="availability-title">Doctor's Availability:</ion-label>
+    <div class="availability-container">
+      <div *ngFor="let day of doctorAvailability" class="availability-item">
+        <div class="day-info">
+          <span class="day">{{ day.day }}</span>
+          <span class="hours">{{ day.hours }}</span>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- Appointment Form -->
+  <ion-card class="appointment-card">
+    <!-- Patient's Name -->
+    <ion-item>
+      <ion-label position="stacked">Patient's name</ion-label>
+      <ion-input [(ngModel)]="patientName" placeholder="Enter name"></ion-input>
+    </ion-item>
+
+    <!-- Select Date -->
+     <ion-item>
+    <ion-label class="section-title">Select Date</ion-label>
+    </ion-item>
+    <div class="date-picker">
+      <ion-chip *ngFor="let date of dates" 
+                (click)="selectDate(date)"
+                [class.selected]="date.selected">
+        <div class="day">{{ date.day }}</div>
+        <div class="number">{{ date.number }}</div>
+      </ion-chip>
+
+      <!-- Button to open Calendar -->
+      <ion-button fill="clear" >
+        <ion-icon name="calendar" slot="start"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="time-container">
+      <ion-item>
+        <ion-label position="stacked">Start Time</ion-label>
+        <ion-input [(ngModel)]="startTime" type="time" placeholder="HH:MM"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">End Time</ion-label>
+        <ion-input [(ngModel)]="endTime" type="time" placeholder="HH:MM"></ion-input>
+      </ion-item>
+    </div>
+
+    <ion-item>
+      <ion-label position="stacked">Complaint</ion-label>
+      <ion-textarea [(ngModel)]="complaint" placeholder="Enter your symptoms"></ion-textarea>
+    </ion-item>
+
+    <ion-button expand="full" class="appointment-btn" (click)="makeAppointment()">
+      Make Appointment
+    </ion-button>
+  </ion-card>
+</ion-content>
