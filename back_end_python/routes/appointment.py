@@ -1,0 +1,21 @@
+from flask import Blueprint, request, jsonify
+from models import Appointment
+
+appointment = Blueprint("appointment", __name__)
+
+@appointment.route("/create_appointment", methods=["POST"])
+def create_appointment():
+    data = request.json
+    required_fields = ["patient_name", "doctor_email", "date", "start_time", "end_time", "complaint"]
+
+    if not all(field in data for field in required_fields):
+        return jsonify({"message": "Missing fields"}), 400
+
+    return Appointment.create_appointment(
+        data["patient_name"],
+        data["doctor_email"],
+        data["date"],
+        data["start_time"],
+        data["end_time"],
+        data["complaint"]
+    )

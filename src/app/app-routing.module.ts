@@ -18,8 +18,12 @@ const routes: Routes = [
     component: LoginPage
   },
   {
-    path : 'appointment',
+    path: 'appointment/:email',
     component : AppointmentPage
+  },
+  {
+    path: 'doctorlist',
+    loadChildren: () => import('./doctorlist/doctorlist.module').then( m => m.DoctorlistPageModule)
   }
 ];
 
