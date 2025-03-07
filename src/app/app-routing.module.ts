@@ -1,10 +1,9 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-<<<<<<< HEAD
+
 import { LoginPage } from './login/login.page';
 import { AppointmentPage } from './appointment/appointment.page';
-=======
->>>>>>> b2981863ac3f6ab189283967a5a86dcacaf06ac5
+
 
 const routes: Routes = [
   {
@@ -16,7 +15,7 @@ const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full'
   },
-<<<<<<< HEAD
+
   {
     path: 'login',
     component: LoginPage
@@ -29,10 +28,8 @@ const routes: Routes = [
     path: 'doctorlist',
     loadChildren: () => import('./doctorlist/doctorlist.module').then( m => m.DoctorlistPageModule)
   }
-=======
->>>>>>> b2981863ac3f6ab189283967a5a86dcacaf06ac5
-];
 
+]
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
