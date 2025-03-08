@@ -187,14 +187,32 @@ export class AppointmentPage implements OnInit {
       return;
     }
 
-    const alert = await this.alertCtrl.create({
-      header: 'Appointment Confirmed',
-      message: `Patient: ${this.patientName} <br> 
-                Dates: ${this.selectedDates.join(', ')} <br>
-                Time: ${this.startTime || 'N/A'} - ${this.endTime || 'N/A'} <br>
-                Complaint: ${this.complaint || 'N/A'}`,
-      buttons: ['OK']
-    });
-    await alert.present();
-  }
+    const appointmentData = {
+      patient_name: this.patientName,
+      doctor_email: this.doctorEmail, 
+      date: this.selectedDates[0], 
+      start_time: this.startTime,
+      end_time: this.endTime,
+      complaint: this.complaint
+    };
+
+    this.http.post('http://localhost:5000/appointment/create_appointment', appointmentData).subscribe(
+    async (response: any) => {
+      const successAlert = await this.alertCtrl.create({
+        header: 'Success',
+        message: 'Your appointment has been successfully created.',
+        buttons: ['OK']
+      });
+      await successAlert.present();
+    },
+    async (error) => {
+      const errorAlert = await this.alertCtrl.create({
+        header: 'Error',
+        message: 'Failed to create appointment. Please try again later.',
+        buttons: ['OK']
+      });
+      await errorAlert.present();
+    }
+  );
+}
 }

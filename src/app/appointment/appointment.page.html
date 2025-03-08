@@ -10,8 +10,9 @@
     <div class="doctor-container">
       <!-- Left: Doctor Image -->
       <div class="doctor-image">
-        <img src="assets/images/doctor1.jpg" alt="Doctor Image" />
+        <img [src]="doctor.image" alt="Doctor Image" />
       </div>
+      
 
       <!-- Right: Doctor Info -->
       <div class="doctor-details">
@@ -23,11 +24,11 @@
         <div class="doctor-stats">
           <div class="stat-item">
             <ion-icon name="star"></ion-icon>
-            <span>{{ doctor.rating || 'N/A' }}</span>
+            <span>{{ doctor.rating}}</span>
           </div>
           <div class="stat-item">
-            <ion-icon name="time"></ion-icon>
-            <span>{{ doctor.experience || 'N/A' }}</span>
+            <ion-icon name="home"></ion-icon>
+            <span>{{ doctor.zone_geographique}}</span>
           </div>
         </div>
       </div>

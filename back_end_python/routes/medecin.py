@@ -9,13 +9,13 @@ medecin = Blueprint("medecin", __name__)
 @medecin.route("/register", methods=["POST"])
 def register():
     data = request.json
-    required_fields = ("nom", "prenom", "email", "password", "specialite", "zone_geographique", "rating","availability")
+    required_fields = ("nom", "prenom", "email", "password", "specialite", "zone_geographique", "rating","availability","image")
     
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Champs manquants"}), 400
 
     return Medecin.create_medecin(data["nom"], data["prenom"], data["email"], data["password"], 
-                                  data["specialite"], data["zone_geographique"], data["rating"],data["availability"])
+                                  data["specialite"], data["zone_geographique"], data["rating"],data["availability"], data["image"])
 
 @medecin.route("/doctor-details/<email>", methods=["GET"])
 def get_doctor_details(email):
@@ -30,7 +30,8 @@ def get_doctor_details(email):
         "specialite": doctor.get("specialite"),
         "zone_geographique": doctor.get("zone_geographique"),
         "rating": doctor.get("rating"),
-        "availability": doctor.get("availability", [])
+        "availability": doctor.get("availability", []),
+        "image" :doctor.get("image")
     }), 200
 
 @medecin.route("/search", methods=["GET"])

@@ -10,6 +10,9 @@ interface Doctor {
   prenom: string;
   specialite: string;
   email: string;  
+  zone_geographique : string,
+  rating : string,
+  image : string
 }
 
 @Component({

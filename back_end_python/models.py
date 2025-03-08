@@ -2,7 +2,7 @@ from config import mongo, bcrypt
 
 class Medecin:
     @staticmethod
-    def create_medecin(nom, prenom, email, password, specialite, zone_geographique, rating, availability):
+    def create_medecin(nom, prenom, email, password, specialite, zone_geographique, rating, availability,image):
         medecins = mongo.db.medecins  # Collection "medecins"
         
         # Vérifier si le médecin existe déjà
@@ -21,7 +21,8 @@ class Medecin:
             "specialite": specialite,
             "zone_geographique": zone_geographique,
             "rating": rating,
-            "availability": availability
+            "availability": availability,
+            "image" : image
         })
 
         return {"message": "Médecin enregistré avec succès"}, 201
@@ -49,7 +50,7 @@ class Medecin:
 class Appointment:
     @staticmethod
     def create_appointment(patient_name, doctor_email, date, start_time, end_time, complaint):
-        appointments = mongo.db.appointments  # Collection "appointments"
+        appointments = mongo.db.appointments  
 
         appointment = {
             "patient_name": patient_name,

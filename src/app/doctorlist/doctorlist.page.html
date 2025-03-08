@@ -5,13 +5,23 @@
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    <ion-item *ngFor="let doctor of doctors">
-      <ion-label>
-        <h2>{{ doctor.nom }} {{ doctor.prenom }}</h2>
-        <p>{{ doctor.specialite }}</p>
-      </ion-label>
-      <ion-button (click)="viewDoctorDetails(doctor.email)" fill="outline" slot="end">View Details</ion-button>
-    </ion-item>
-  </ion-list>
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let doctor of doctors">
+        <ion-card>
+          <img [src]="doctor.image" alt="Doctor Image" />
+          <ion-card-header>
+            <ion-card-title>{{ doctor.nom }} {{ doctor.prenom }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p><strong>Spécialité:</strong> {{ doctor.specialite }}</p>
+            <p><strong>Zone:</strong> {{ doctor.zone_geographique }}</p>
+            <p><strong>Note:</strong> ⭐ {{ doctor.rating }}</p>
+          </ion-card-content>
+          <ion-button expand="full" (click)="viewDoctorDetails(doctor.email)">Voir Détails</ion-button>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>
+
