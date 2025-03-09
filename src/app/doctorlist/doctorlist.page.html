@@ -5,9 +5,22 @@
 </ion-header>
 
 <ion-content>
+  <!-- Search Inputs -->
+  <ion-item>
+    <ion-label position="floating">Spécialité</ion-label>
+    <ion-input [(ngModel)]="searchSpecialite"></ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="floating">Zone Géographique</ion-label>
+    <ion-input [(ngModel)]="searchZone"></ion-input>
+  </ion-item>
+
+  <ion-button expand="full" (click)="searchDoctors()">Rechercher</ion-button>
+
   <ion-grid>
     <ion-row>
-      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let doctor of doctors">
+      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let doctor of filteredDoctors">
         <ion-card>
           <img [src]="doctor.image" alt="Doctor Image" />
           <ion-card-header>
@@ -24,4 +37,3 @@
     </ion-row>
   </ion-grid>
 </ion-content>
-
