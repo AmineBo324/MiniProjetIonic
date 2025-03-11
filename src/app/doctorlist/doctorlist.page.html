@@ -1,39 +1,38 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>Doctors</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title class="ion-text-center">👨‍⚕️ Find a doctor</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <!-- Search Inputs -->
-  <ion-item>
-    <ion-label position="floating">Spécialité</ion-label>
-    <ion-input [(ngModel)]="searchSpecialite"></ion-input>
-  </ion-item>
+  <!-- Barre de recherche -->
+  <ion-searchbar [(ngModel)]="searchSpecialite" placeholder="Search by Speciality"></ion-searchbar>
+  <ion-searchbar [(ngModel)]="searchZone" placeholder="Search by Location"></ion-searchbar>
 
-  <ion-item>
-    <ion-label position="floating">Zone Géographique</ion-label>
-    <ion-input [(ngModel)]="searchZone"></ion-input>
-  </ion-item>
-
-  <ion-button expand="full" (click)="searchDoctors()">Rechercher</ion-button>
+  <div class="search-container">
+    <ion-button expand="full" shape="round" (click)="searchDoctors()">🔍 Search</ion-button>
+  </div>
 
   <ion-grid>
     <ion-row>
       <ion-col size="12" size-md="6" size-lg="4" *ngFor="let doctor of filteredDoctors">
-        <ion-card>
-          <img [src]="doctor.image" alt="Doctor Image" />
+        <ion-card class="doctor-card">
+          <img [src]="doctor.image" alt="Doctor Image" class="doctor-image" />
           <ion-card-header>
-            <ion-card-title>{{ doctor.nom }} {{ doctor.prenom }}</ion-card-title>
+            <ion-card-title class="doctor-name">{{ doctor.nom }} {{ doctor.prenom }}</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p><strong>Spécialité:</strong> {{ doctor.specialite }}</p>
-            <p><strong>Zone:</strong> {{ doctor.zone_geographique }}</p>
-            <p><strong>Note:</strong> ⭐ {{ doctor.rating }}</p>
+            <p><strong>🩺 Speciality :</strong> {{ doctor.specialite }}</p>
+            <p><strong>📍 Location :</strong> {{ doctor.zone_geographique }}</p>
+            <p><strong>⭐ Rating :</strong> {{ doctor.rating }}</p>
           </ion-card-content>
-          <ion-button expand="full" (click)="viewDoctorDetails(doctor.email)">Voir Détails</ion-button>
+          <ion-button expand="full" fill="solid" shape="round" (click)="viewDoctorDetails(doctor.email)">
+            View Details
+          </ion-button>
         </ion-card>
       </ion-col>
     </ion-row>
   </ion-grid>
 </ion-content>
+
+
