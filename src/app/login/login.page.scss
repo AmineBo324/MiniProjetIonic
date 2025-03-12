@@ -1,0 +1,81 @@
+ion-header {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+ion-toolbar {
+    --ion-background-color: transparent;
+    --opacity: 0;
+}
+
+ion-content {
+    --ion-background-color: #E1EAF9;
+}
+
+.image-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-container ion-img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+.welcome-text {
+    position: absolute;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.wrapform {
+    margin-top: 20px;
+}
+
+ion-item {
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 10px;
+
+    ion-input {
+        color: #647890;
+    }
+}
+
+.password_forgot {
+    text-align: right;
+
+    ion-button {
+        font-size: 12px;
+        color: #175dd7;
+    }
+}
+
+.sign-btn-wrap{
+    text-align: center;
+    padding-top: 30px;
+     .sign-btn{
+        color: #F4F6FA;
+     }
+}
+
+/* Signup Section */
+.signup-section {
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    color: #647890;
+}
+
+.signup-section a {
+    color: #175dd7;
+    font-weight: bold;
+    text-decoration: none;
+}
