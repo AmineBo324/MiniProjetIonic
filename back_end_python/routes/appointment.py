@@ -12,8 +12,19 @@ def create_appointment():
         return jsonify({"message": "Missing fields"}), 400
 
     try:
-        # Assuming create_appointment returns an object or success flag
-        appointment = Appointment.create_appointment(
+        # Check if an overlapping appointment exists
+        overlapping_appointment = Appointment.find_overlapping_appointment(
+            data["doctor_email"], 
+            data["date"], 
+            data["start_time"],
+            data["end_time"]
+        )
+
+        if overlapping_appointment:
+            return jsonify({"message": "Selected time slot is unavailable"}), 400
+
+        # Create and save the new appointment
+        new_appointment = Appointment.create_appointment(
             data["patient_name"],
             data["doctor_email"],
             data["date"],
@@ -21,6 +32,7 @@ def create_appointment():
             data["end_time"],
             data["complaint"]
         )
-        return jsonify({"message": "Appointment created successfully", "appointment": appointment}), 201
+
+        return jsonify({"message": "Appointment created successfully", "appointment": new_appointment}), 201
     except Exception as e:
         return jsonify({"message": "Error creating appointment", "error": str(e)}), 500

@@ -71,7 +71,7 @@ export class AppointmentPage implements OnInit {
           return acc;
         }, {});
 
-        console.log(this.availability); // Example format: { '2025-03-10': ['10:00', '14:00'], ... }
+        console.log(this.availability); 
         this.availableDates = Object.keys(this.availability); // Store the list of available dates
       },
       (error) => {
@@ -88,7 +88,7 @@ export class AppointmentPage implements OnInit {
     const highlightedDates: HighlightedDate[] = [];
 
     // Assume 'availableDays' is already fetched (e.g., ['Monday', 'Wednesday'])
-    const availableDays = this.availableDates;  // Or fetch from server as needed
+    const availableDays = this.availableDates;  
 
     // Loop through the doctor's available days
     availableDays.forEach(day => {
