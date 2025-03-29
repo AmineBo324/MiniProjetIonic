@@ -1,5 +1,8 @@
 <ion-header>
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/doctorlist" text=""></ion-back-button>
+    </ion-buttons>
     <ion-title class="ion-text-center">📅 Book an Appointment</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -42,25 +45,51 @@
         <ion-input [(ngModel)]="patientName" placeholder="Enter your name"></ion-input>
       </ion-item>
 
-      <!-- Select Date -->
-      <ion-item>
-        <ion-label position="stacked">📅 Select Date</ion-label>
-        <ion-datetime 
-          presentation="date"
-          [multiple]="true"
-          [(ngModel)]="selectedDates"
-          [min]="minDate"
-          [max]="maxDate"
-          [highlightedDates]="highlightDates()"
-          (ionChange)="dateSelected($event)">
-        </ion-datetime>
-      </ion-item>
+      <!-- Weekly Calendar -->
+  <ion-card class="week-calendar">
+    <div class="week-navigation">
+      <ion-button fill="clear" (click)="previousWeek()">
+        <ion-icon name="chevron-back"></ion-icon>
+      </ion-button>
+      <ion-label>
+        Week of {{ weekDays[0].date | date:'MMM d' }} - {{ weekDays[6].date | date:'MMM d' }}
+      </ion-label>
+      <ion-button fill="clear" (click)="nextWeek()">
+        <ion-icon name="chevron-forward"></ion-icon>
+      </ion-button>
+    </div>
 
-      <!-- Display Selected Dates -->
-      <ion-item *ngIf="selectedDates.length > 0">
-        <ion-label>📆 Selected Date(s):</ion-label>
-        <ion-text>{{ selectedDates.join(', ') }}</ion-text>
-      </ion-item>
+    <div class="week-days">
+      <div *ngFor="let day of weekDays" 
+           class="day-cell"
+           [class.available]="day.isAvailable"
+           [class.selected]="selectedDate === day.date"
+           (click)="day.isAvailable && selectDate(day.date)">
+        <div class="day-name">{{ day.dayName }}</div>
+        <div class="day-number">{{ day.dateNumber }}</div>
+      </div>
+    </div>
+  </ion-card>
+<!-- Add this after the weekly calendar in your template -->
+<ion-card *ngIf="selectedDate" class="time-slots-card expanded-content" >
+  <ion-card-header>
+    <ion-card-title style="font-size: 1.2rem">🕒 Available Time Slots</ion-card-title>
+    <ion-card-subtitle>{{ selectedDate | date:'fullDate' }}</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content class="expanded-content">
+    <div class="time-slots-grid">
+      <div *ngFor="let slot of availableSlots" 
+           class="time-slot"
+           [class.available]="slot.isAvailable"
+           [class.selected]="selectedSlot === slot"
+           (click)="selectSlot(slot)">
+        {{ slot.start }} - {{ slot.end }}
+        <ion-icon *ngIf="!slot.isAvailable" name="close-circle" color="danger"></ion-icon>
+      </div>
+    </div>
+  </ion-card-content>
+</ion-card>
 
       <!-- Time Selection -->
       <div class="time-container">
@@ -81,11 +110,12 @@
       </ion-item>
 
       <!-- Appointment Button -->
-      <ion-button expand="full" class="appointment-btn" (click)="makeAppointment()">
-        📌 Book Appointment
+      <ion-button expand="full" class="appointment-btn" shape="round" (click)="makeAppointment()">
+         Book Appointment
       </ion-button>
 
     </ion-card-content>
   </ion-card>
 
 </ion-content>
+ 
