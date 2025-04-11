@@ -1,28 +1,207 @@
+/* doctorlist.page.scss */
+
 .search-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
+  padding: 16px;
+  background-color: white;
+  position: relative;
+  z-index: 100;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  margin-bottom: 12px; /* Added margin for spacing with search button */
+}
+
+.main-searchbar {
+  --background: transparent;
+  --border-radius: 30px;
+  --box-shadow: none;
+  --padding-top: 5px;
+  --padding-bottom: 5px;
+  --placeholder-color: #666;
+  flex: 1;
+}
+
+.filter-button {
+  --padding-start: 8px;
+  --padding-end: 12px;
+  --color: #5e60ce;
+  font-size: 20px;
+}
+
+.search-button {
+  --background: #5e60ce;
+  --border-radius: 30px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  margin-bottom: 10px;
+  font-weight: 500;
+  margin-top: 12px; /* Added to ensure spacing after search bar */
+  height: 44px; /* Standardize button height */
+}
+
+.filter-options {
+  margin-top: 10px;
+  background-color: white;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+  opacity: 0;
+}
+
+.show-filters {
+  display: block;
+  max-height: 200px; /* Adjust based on content */
+  opacity: 1;
+  animation: slideDown 0.3s ease-out;
+}
+
+.filter-option {
+  margin-bottom: 10px;
+}
+
+.apply-filter-btn {
+  --background: #5e60ce;
+  --border-radius: 25px;
+  margin-top: 10px;
+  height: 40px; /* Standardize button height */
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+}
+
+.doctor-grid {
+  padding: 0 16px 16px 16px; /* Adjusted to remove top padding */
+}
+
+.doctor-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.doctor-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Add smooth hover effect */
+}
+
+.doctor-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.doctor-info {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.doctor-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow to image */
+}
+
+.doctor-details {
+  margin-left: 16px;
+  flex: 1;
+}
+
+.doctor-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #333;
+}
+
+.doctor-specialty {
+  font-size: 14px;
+  color: #777;
+  margin: 0 0 8px 0;
+}
+
+.doctor-rating {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.star {
+  color: #FFD700;
+  margin-right: 4px;
+}
+
+.dot-separator {
+  margin: 0 8px;
+  color: #999;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.book-button {
+  flex: 1;
+  --border-radius: 8px;
+  --background: #5e60ce;
+  margin: 0;
+  font-weight: 500;
+  height: 40px; /* Standardize button height */
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive design pour mobile */
+@media (max-width: 576px) {
+  .doctor-row {
+    grid-template-columns: 1fr;
   }
   
-  .doctor-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .doctor-image {
-    width: 100%;
-    height: 250px;
-    object-fit: fill;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+  .doctor-avatar {
+    width: 60px;
+    height: 60px;
   }
   
   .doctor-name {
-    text-align: center;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #333;
+    font-size: 16px;
   }
   
+  .search-container {
+    padding: 12px;
+  }
+  
+  .book-button {
+    font-size: 13px;
+  }
+}
+
