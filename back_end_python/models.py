@@ -63,3 +63,17 @@ class Appointment:
 
         appointments.insert_one(appointment)
         return {"message": "Appointment created successfully"}, 201
+
+    @staticmethod
+    def find_overlapping_appointment(doctor_email, date, new_start_time, new_end_time):
+        appointments = mongo.db.appointments
+        return appointments.find_one({
+            "doctor_email": doctor_email,
+            "date": date,
+            "$or": [
+                {
+                    "start_time": {"$lt": new_end_time},
+                    "end_time": {"$gt": new_start_time}
+                }
+            ]
+        })

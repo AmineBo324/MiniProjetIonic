@@ -1,38 +1,67 @@
+<!-- doctorlist.page.html -->
 <ion-header>
-  <ion-toolbar color="primary">
-    <ion-title class="ion-text-center">👨‍⚕️ Find a doctor</ion-title>
+  <ion-toolbar>
+    <ion-title>Doctors List</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <!-- Barre de recherche -->
-  <ion-searchbar [(ngModel)]="searchSpecialite" placeholder="Search by Speciality"></ion-searchbar>
-  <ion-searchbar [(ngModel)]="searchZone" placeholder="Search by Location"></ion-searchbar>
-
+  <!-- Nouvelle barre de recherche unifiée -->
   <div class="search-container">
-    <ion-button expand="full" shape="round" (click)="searchDoctors()">🔍 Search</ion-button>
+    <div class="search-bar">
+      <ion-searchbar [(ngModel)]="searchTerm" placeholder="Search doctors..." class="main-searchbar"></ion-searchbar>
+      <ion-button fill="clear" class="filter-button" (click)="toggleFilterOptions()">
+        <ion-icon name="options-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Bouton de recherche -->
+  <ion-button expand="block" class="search-button" (click)="searchDoctors()">
+    <ion-icon name="search-outline" slot="start"></ion-icon>
+    Search
+  </ion-button>
+    
+    <!-- Options de filtre (visible uniquement quand showFilters est true) -->
+    <div class="filter-options" [ngClass]="{'show-filters': showFilters}">
+      <div class="filter-option">
+        <ion-radio-group [(ngModel)]="searchType">
+          <ion-item lines="none">
+            <ion-label>Search by Speciality</ion-label>
+            <ion-radio slot="start" value="specialite"></ion-radio>
+          </ion-item>
+          
+          <ion-item lines="none">
+            <ion-label>Search by Location</ion-label>
+            <ion-radio slot="start" value="zone_geographique"></ion-radio>
+          </ion-item>
+        </ion-radio-group>
+      </div>
+      <ion-button expand="block" shape="round" (click)="searchDoctors()" class="apply-filter-btn">
+        Apply Filter
+      </ion-button>
+    </div>
   </div>
 
-  <ion-grid>
-    <ion-row>
-      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let doctor of filteredDoctors">
-        <ion-card class="doctor-card">
-          <img [src]="doctor.image" alt="Doctor Image" class="doctor-image" />
-          <ion-card-header>
-            <ion-card-title class="doctor-name">{{ doctor.nom }} {{ doctor.prenom }}</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <p><strong>🩺 Speciality :</strong> {{ doctor.specialite }}</p>
-            <p><strong>📍 Location :</strong> {{ doctor.zone_geographique }}</p>
-            <p><strong>⭐ Rating :</strong> {{ doctor.rating }}</p>
-          </ion-card-content>
-          <ion-button expand="full" fill="solid" shape="round" (click)="viewDoctorDetails(doctor.email)">
-            View Details
-          </ion-button>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <!-- Liste des docteurs (deux par ligne) -->
+  <div class="doctor-grid">
+    <div class="doctor-row">
+      <div class="doctor-card" *ngFor="let doctor of filteredDoctors">
+        <div class="doctor-info">
+          <img [src]="doctor.image" alt="Doctor Image" class="doctor-avatar" />
+          <div class="doctor-details">
+            <h2 class="doctor-name">{{ doctor.nom }} {{ doctor.prenom }}</h2>
+            <p class="doctor-specialty">{{doctor.specialite}}</p>
+            <div class="doctor-rating">
+              <span class="star">★</span> {{ doctor.rating }}
+              <span class="dot-separator">•</span>{{doctor.zone_geographique}}
+            </div>
+          </div>
+        </div>
+        <div class="action-buttons">
+          <ion-button expand="block" color="primary" class="book-button" (click)="viewDoctorDetails(doctor.email)">Book</ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h2>kdjfbvkdf</h2>
 </ion-content>
-
-
