@@ -7,7 +7,6 @@ import { IonicModule } from '@ionic/angular';
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
-  standalone: true,
   imports: [IonicModule, CommonModule, ReactiveFormsModule]
 })
 export class LoginPage implements OnInit {

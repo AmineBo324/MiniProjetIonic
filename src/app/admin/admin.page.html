@@ -1,0 +1,22 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Dashboard Admin</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content style="--background: url('/assets/images/backgoundadmin.png') no-repeat center center / cover; background: var(--background);">
+  <h1>Bienvenue, Super Admin</h1>
+  <p>Utilisez les boutons ci-dessous pour gérer les médecins ou les patients.</p>
+
+</ion-content>
+<ion-tabs>
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="home" routerLink="/gestion-medecins">
+      <ion-icon name="medkit-outline"></ion-icon>
+      Gestion Médecins    </ion-tab-button>
+    <ion-tab-button tab="radio" routerLink="/gestion-patients">
+      <ion-icon name="people-outline"></ion-icon>
+      Gestion Patients
+    </ion-tab-button>
+  
+

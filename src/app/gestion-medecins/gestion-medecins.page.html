@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button routerLink="/admin" routerDirection="back">
+        <ion-icon name="arrow-back"></ion-icon>
+        <span style="margin-left: 5px;">Back</span>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Gestion des Médecins</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngFor="let specialty of specialties">
+    <h2>{{ specialty.name }}</h2>
+    <div class="scroll-container">
+      <div *ngFor="let doctor of specialty.doctors" class="card">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>{{ doctor.name }}</ion-card-title>
+            <ion-card-subtitle>{{ doctor.specialty }}</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Email: {{ doctor.email }}</p>
+            <ion-button (click)="deleteDoctor(doctor)" color="danger">Supprimer</ion-button>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+    <ion-button (click)="addDoctor(specialty.name)" expand="block" color="primary">
+      Ajouter un Médecin
+    </ion-button>
+  </div>
+</ion-content>

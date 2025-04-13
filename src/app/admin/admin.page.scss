@@ -1,0 +1,74 @@
+ion-content {
+    color: #ffffff; 
+    position: relative;
+  
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: inherit;
+      filter: blur(8px);
+      z-index: -1;
+    }
+}
+  
+  ion-toolbar {
+    --background: rgba(56, 128, 255, 0.9);
+    --color: #ffffff;
+  }
+  
+  h1 {
+    font-size: 2em;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 32px;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); // Darker shadow for better readability
+    background: rgba(0, 0, 0, 0.5); // Semi-transparent black background
+    padding: 16px; // Add padding for better spacing
+    border-radius: 8px; // Rounded corners
+    display: inline-block; // Make the background only as wide as the text
+  }
+  
+  p {
+    font-size: 1.2em;
+  text-align: center;
+  margin: 16px 24px;
+  color: #e0e0e0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); // Darker shadow for better readability
+  background: rgba(0, 0, 0, 0.5); // Semi-transparent black background
+  padding: 12px; // Add padding for better spacing
+  border-radius: 8px; // Rounded corners
+  display: inline-block; // Make the background only as wide as the text
+  }
+  
+  ion-tab-bar {
+    --background: rgba(56, 128, 255, 0.9);
+    --color: #ffffff;
+    --color-selected: #ffd700;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  ion-tab-button {
+    --background: transparent;
+    --color: #ffffff;
+    --color-selected: #ffd700;
+    font-size: 0.9em;
+  
+    ion-icon {
+      font-size: 1.5em;
+      margin-bottom: 4px;
+    }
+  }
+  
+  ion-tab-button:hover {
+    --color: #ffd700;
+  
+    ion-icon {
+      transform: scale(1.1) rotate(10deg);
+      transition: transform 0.2s ease;
+    }
+  }

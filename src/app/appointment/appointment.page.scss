@@ -1,81 +1,187 @@
-/* ======================== */
-/* 📌 Styling du Docteur */
-/* ======================== */
 .doctor-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  padding: 15px;
-  background: #ffffff;
-  transition: transform 0.2s ease-in-out;
+    background: linear-gradient(135deg, #1e88e5, #1976d2);
+    border-radius: 15px;
+    padding: 15px;
+    color: white;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .doctor-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .doctor-image img {
+    width: 100px; 
+    height: 100px; 
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid white;
+  }
+  
+  
+  .doctor-details {
+    flex: 1;
+    margin-left: 15px;
+  }
+  
+  .specialty {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  
+  .doctor-details h2 {
+    margin: 5px 0;
+    font-size: 18px;
+  }
+  
+  .email {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  
+  .doctor-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .stat-item ion-icon {
+    font-size: 18px;
+    color: yellow;
+  }
+
+  /* Appointment Form */
+.appointment-card {
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+  
+  .date-picker {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  
+  .date-picker ion-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 14px;
+    background: #f4f4f4;
+    cursor: pointer;
+  }
+  
+  .date-picker .selected {
+    background: #1e88e5;
+    color: white;
+  }
+  
+  .day {
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .number {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .time-container {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .time-container ion-item {
+    width: 48%;
+  }
+  
+  .appointment-btn {
+    background: #1e88e5;
+    color: white;
+    margin-top: 15px;
+    border-radius: 10px;
+  }
+
+  /* Doctor's Availability Section Styling */
+.doctor-availability {
+  margin-top: 30px;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.doctor-container {
+.availability-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.availability-container {
   display: flex;
+  flex-direction: column;
+}
+
+.availability-item {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-}
-
-.doctor-image img {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: fill;
-}
-
-.doctor-details {
-  flex: 1;
-}
-
-.specialty {
-  background: #4CAF50;
-  color: white;
-  padding: 5px 10px;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #ffffff;
   border-radius: 8px;
-  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.doctor-stats {
+.day-info {
+  flex: 1;
   display: flex;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.stat-item {
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 5px;
+}
+
+.day {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.hours {
+  font-size: 0.9rem;
   color: #666;
 }
 
-/* ======================== */
-/* 📌 Styling du Formulaire */
-/* ======================== */
-.appointment-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background: #f8f8f8;
-}
-
-.time-container {
+.availability-chip {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-/* ======================== */
-/* 📌 Bouton de rendez-vous */
-/* ======================== */
-.appointment-btn {
-  margin-top: 10px;
-  font-size: 1rem;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 0.9rem;
   font-weight: bold;
-  background: #007bff;
-  color: white;
-  border-radius: 8px;
-  transition: 0.3s;
+  border-radius: 20px;
 }
 
-.appointment-btn:hover {
-  background: #0056b3;
+.availability-chip ion-label {
+  color: white;
 }
+
+  
