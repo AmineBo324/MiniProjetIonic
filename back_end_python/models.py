@@ -46,6 +46,7 @@ class Medecin:
         
         return result
 
+    
 
 class Appointment:
     @staticmethod

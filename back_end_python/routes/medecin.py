@@ -1,7 +1,10 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_bcrypt import check_password_hash
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from models import Medecin  
 from config import mongo
+
+
 
 medecin = Blueprint("medecin", __name__)
 
@@ -16,6 +19,28 @@ def register():
 
     return Medecin.create_medecin(data["nom"], data["prenom"], data["email"], data["password"], 
                                   data["specialite"], data["zone_geographique"], data["rating"],data["availability"], data["image"])
+
+
+
+@medecin.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    
+    if "email" not in data:
+        return jsonify({"error": "Email requis"}), 400
+
+    medecin = mongo.db.medecins.find_one({"email": data["email"]})
+
+    if not medecin:
+        return jsonify({"error": "Médecin non trouvé"}), 404
+
+    # Convert ObjectId to string and remove sensitive fields
+    medecin["_id"] = str(medecin["_id"])
+    medecin.pop("password", None)  # Remove password if it exists
+
+    return jsonify({
+        "medecin" : medecin
+    }), 200
 
 @medecin.route("/doctor-details/<email>", methods=["GET"])
 def get_doctor_details(email):
@@ -71,3 +96,14 @@ def get_all_doctors():
 
     return jsonify(doctor_list), 200
 
+# Route to get 4 doctors
+@medecin.route("/recent", methods=["GET"])
+def get_recent_doctors():
+    doctors = mongo.db.medecins.find().limit(4)  # Fetch only 4 doctors
+    doctor_list = []
+
+    for doctor in doctors:
+        doctor["_id"] = str(doctor["_id"])  # Convert ObjectId to string
+        doctor_list.append(doctor)
+
+    return jsonify(doctor_list), 200

@@ -13,28 +13,54 @@
   </ion-card>
 
   <ion-card-content>
-    <div class="wrapform">
-      <ion-item>
-        <ion-icon name="mail-outline"></ion-icon>
-        <ion-input type="text" name="email" required placeholder="Email"></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-icon name="lock-closed-outline"></ion-icon>
-        <ion-input type="password" name="password" required placeholder="Password"></ion-input>
-      </ion-item>
-    </div>
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <div class="wrapform">
+        <ion-item>
+          <ion-icon name="mail-outline"></ion-icon>
+          <ion-input 
+            type="email" 
+            formControlName="email" 
+            required 
+            placeholder="Email"
+            autocomplete="email">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <ion-input 
+            type="password" 
+            formControlName="password" 
+            required 
+            placeholder="Password"
+            autocomplete="current-password">
+          </ion-input>
+        </ion-item>
+      </div>
 
-    <div class="password_forgot">
-      <ion-button fill="clear" class="ion-no-padding">Forgot Password?</ion-button>
-    </div>
+      <div class="password_forgot">
+        <ion-button 
+          fill="clear" 
+          class="ion-no-padding">
+          Forgot Password?
+        </ion-button>
+      </div>
 
-    <div class="sign-btn-wrap">
-      <ion-button shape="round" fill="solid" class="sign-btn">Login</ion-button>
-    </div>
+      <div class="sign-btn-wrap">
+        <ion-button 
+          type="submit"
+          shape="round" 
+          fill="solid" 
+          class="sign-btn"
+          [disabled]="loginForm.invalid || isLoading">
+          <ion-spinner *ngIf="isLoading"></ion-spinner>
+          <span *ngIf="!isLoading">Login</span>
+        </ion-button>
+      </div>
+    </form>
   </ion-card-content>
   <div class="signup-section">
-    <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+    <p>Don't have an account? 
+      <a>Sign Up</a>
+    </p>
   </div>
 </ion-content>
-
-  

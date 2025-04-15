@@ -3,7 +3,7 @@ import { AlertController, IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 interface DaySlot {
   date: string; // YYYY-MM-DD
@@ -48,7 +48,8 @@ export class AppointmentPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private router : Router
   ) {}
 
   ngOnInit() {
@@ -301,5 +302,9 @@ export class AppointmentPage implements OnInit {
             await errorAlert.present();
         }
     );
+}
+
+goToPage(page: string) {
+  this.router.navigateByUrl('/' + page);
 }
 }

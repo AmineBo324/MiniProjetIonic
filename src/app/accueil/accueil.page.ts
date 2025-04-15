@@ -1,48 +1,80 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { IonicModule } from '@ionic/angular';
 
 interface Doctor {
+  id: string;
   nom: string;
   prenom: string;
   specialite: string;
+  zone_geographique: string;
   email: string;
-  zone_geographique: string,
-  rating: string,
-  image: string
+  image?: string;
+  rating: number;
 }
 
+
 @Component({
-  selector: 'app-doctor-list',
-  templateUrl: './doctorlist.page.html',
-  styleUrls: ['./doctorlist.page.scss'],
+  selector: 'app-accueil',
+  templateUrl: './accueil.page.html',
+  styleUrls: ['./accueil.page.scss'],
   standalone: true,
   imports: [CommonModule, IonicModule, FormsModule]
 })
-export class DoctorlistPage implements OnInit {
+
+
+
+export class AccueilPage implements OnInit {
+
+  adImages: string[] = [
+    'assets/ads/ad1.jpg',
+    'assets/ads/ad2.jpg',
+    'assets/ads/ad3.jpg'
+  ];
+  currentAdIndex: number = 0;
+
+  specialties = [
+    { name: 'Médecin généraliste', icon: 'medkit' },
+    { name: 'Dentiste', icon: 'fitness' },
+    { name: 'Pédiatrie', icon: 'happy' },
+    { name: 'Cardiologie', icon: 'heart' },
+    { name: 'Dermatologie', icon: 'body' },
+    { name: 'Ophtalmologie', icon: 'eye' },
+    { name: 'Orthopédie', icon: 'walk' },
+    { name: 'Gynécologie', icon: 'female' }
+  ];
+
+  // Variables pour les médecins
   doctors: Doctor[] = [];
   filteredDoctors: Doctor[] = [];
-  
-  // Nouvelles propriétés pour la recherche unifiée
+  searchType: string = 'specialite';
   searchTerm: string = '';
-  searchType: string = 'specialite'; // Valeur par défaut
-  showFilters: boolean = false;
-  
-  // Maintenir les anciennes propriétés pour compatibilité
   searchSpecialite: string = '';
   searchZone: string = '';
+  showFilters: boolean = false;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     this.fetchDoctors();
   }
 
+  changeAdImage() {
+    this.currentAdIndex = (this.currentAdIndex + 1) % this.adImages.length;
+  }
+
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
+  }
+
   fetchDoctors() {
-    this.http.get<Doctor[]>('http://localhost:5000/medecin/all')
+    this.http.get<Doctor[]>('http://localhost:5000/medecin/recent')
       .subscribe((response) => {
         this.doctors = response;
         this.filteredDoctors = response;
@@ -51,12 +83,6 @@ export class DoctorlistPage implements OnInit {
       });
   }
 
-  // Méthode pour basculer l'affichage des options de filtre
-  toggleFilterOptions() {
-    this.showFilters = !this.showFilters;
-  }
-
-  // Méthode de recherche mise à jour
   searchDoctors() {
     // Vérifier le type de recherche sélectionné et assigner la valeur appropriée
     if (this.searchType === 'specialite') {
@@ -92,7 +118,19 @@ export class DoctorlistPage implements OnInit {
     this.router.navigate(['/appointment', email]);
   }
 
+  showAllDoctors(){
+    this.router.navigate(['/doctorlist']);
+  }
+
+  resetSearch() {
+    this.searchTerm = '';
+    this.searchSpecialite = '';
+    this.searchZone = '';
+    this.fetchDoctors();
+  }
+
   goToPage(page: string) {
     this.router.navigateByUrl('/' + page);
   }
+
 }

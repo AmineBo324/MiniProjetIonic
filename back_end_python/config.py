@@ -10,6 +10,6 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/cabinet_medical"
 mongo = PyMongo(app)
 
 # Security Configs
-app.config["JWT_SECRET_KEY"] = "your_secret_key"
+app.config["JWT_SECRET_KEY"] = "a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890"
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
