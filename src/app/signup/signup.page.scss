@@ -1,0 +1,101 @@
+ion-header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+}
+
+ion-toolbar {
+  --ion-background-color: transparent;
+  --opacity: 0;
+}
+
+ion-content {
+  --ion-background-color: #E1EAF9;
+}
+
+.image-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-container ion-img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.welcome-text {
+  position: absolute;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.wrapform {
+  margin-top: 20px;
+}
+
+ion-item {
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 10px;
+
+  ion-input {
+      color: #647890;
+  }
+}
+
+.header-card {
+  margin: 0;
+  border-radius: 0 0 20px 20px;
+  overflow: hidden;
+}
+
+
+
+ion-item {
+  --border-radius: 10px;
+  margin-bottom: 15px;
+  --background: #f8f8f8;
+}
+
+ion-icon {
+  margin-right: 10px;
+  color: #666;
+}
+
+ion-input, ion-datetime, ion-select {
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+}
+
+.sign-btn-wrap {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.sign-btn {
+  --border-radius: 25px;
+  --padding-start: 30px;
+  --padding-end: 30px;
+  height: 50px;
+  text-transform: none;
+  font-size: 16px;
+}
+
+.signup-section {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.signup-section a {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: bold;
+}
+

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, IonicModule } from '@ionic/angular';
+import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
 interface DaySlot {
@@ -31,6 +31,8 @@ export class AppointmentPage implements OnInit {
   doctorEmail: string = '';
   doctor: any = {};
   availability: any = {};
+  patientEmail: string = '';
+  uploadedFiles: File[] = [];
   
   // Weekly calendar properties
   currentWeekStart = new Date();
@@ -49,7 +51,8 @@ export class AppointmentPage implements OnInit {
     private route: ActivatedRoute,
     private http: HttpClient,
     private alertCtrl: AlertController,
-    private router : Router
+    private router : Router,
+    private toastCtrl: ToastController,
   ) {}
 
   ngOnInit() {
@@ -241,46 +244,93 @@ export class AppointmentPage implements OnInit {
     );
   }
 
+  async uploadDocument() {
+    // Créer un élément input de type file invisible
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx';
+    fileInput.multiple = true;
+    
+    // Écouter l'événement de changement
+    fileInput.addEventListener('change', (event) => {
+      const files = (event.target as HTMLInputElement).files;
+      if (files) {
+        // Ajouter les fichiers sélectionnés à notre tableau
+        for (let i = 0; i < files.length; i++) {
+          this.uploadedFiles.push(files[i]);
+        }
+        
+        // Afficher une notification
+        this.presentToast(`${files.length} file(s) selected`);
+      }
+    });
+    
+    // Déclencher le clic sur l'input
+    fileInput.click();
+  }
+
+  // Ajouter également cette méthode pour la notification
+  async presentToast(message: string) {
+    const toast = await this.toastCtrl.create({
+      message: message,
+      duration: 2000,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
   async makeAppointment() {
     // First check if we have the minimum required data
     if (!this.selectedDate) {
-        const alert = await this.alertCtrl.create({
-            header: 'Error',
-            message: 'Please select a date before making an appointment.',
-            buttons: ['OK']
-        });
-        await alert.present();
-        return;
+      const alert = await this.alertCtrl.create({
+        header: 'Error',
+        message: 'Please select a date before making an appointment.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
     }
 
     // Then check if we have time information (either from slot selection or manual input)
     if (!this.startTime || !this.endTime) {
-        const alert = await this.alertCtrl.create({
-            header: 'Error',
-            message: 'Please select a time slot or enter start/end times.',
-            buttons: ['OK']
-        });
-        await alert.present();
-        return;
+      const alert = await this.alertCtrl.create({
+        header: 'Error',
+        message: 'Please select a time slot or enter start/end times.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
     }
 
-    const appointmentData = {
-        patient_name: this.patientName,
-        doctor_email: this.doctorEmail,
-        date: this.selectedDate,
-        start_time: this.startTime,
-        end_time: this.endTime,
-        complaint: this.complaint
-    };
-
-    console.log('Submitting appointment:', appointmentData); // Debug log
-
-    this.http.post('http://localhost:5000/appointment/create_appointment', appointmentData).subscribe(
-        async (response: any) => {
+    try {
+      // Instead of JSON post, we need to use FormData to handle file uploads
+      const formData = new FormData();
+      
+      // Add text data
+      formData.append('patient_name', this.patientName);
+      formData.append('patient_email', this.patientEmail);
+      formData.append('doctor_email', this.doctorEmail);
+      formData.append('date', this.selectedDate);
+      formData.append('start_time', this.startTime);
+      formData.append('end_time', this.endTime);
+      formData.append('complaint', this.complaint);
+      
+      // Add all files
+      for (let i = 0; i < this.uploadedFiles.length; i++) {
+        formData.append('documents', this.uploadedFiles[i], this.uploadedFiles[i].name);
+      }
+      
+      // Log what we're submitting (for debugging)
+      console.log('Submitting appointment with files:', this.uploadedFiles);
+      
+      // Send the FormData to the server
+      this.http.post('http://localhost:5000/appointment/create_appointment', formData)
+        .subscribe(
+          async (response: any) => {
             const successAlert = await this.alertCtrl.create({
-                header: 'Success',
-                message: 'Your appointment has been successfully created.',
-                buttons: ['OK']
+              header: 'Success',
+              message: 'Your appointment has been successfully created.',
+              buttons: ['OK']
             });
             await successAlert.present();
             
@@ -288,23 +338,33 @@ export class AppointmentPage implements OnInit {
             this.selectedSlot = null;
             this.startTime = '';
             this.endTime = '';
+            this.uploadedFiles = [];
             
             // Refresh available slots
             this.fetchBookedAppointments(this.selectedDate!);
-        },
-        async (error) => {
-            console.error('Appointment error:', error); // Debug log
+          },
+          async (error) => {
+            console.error('Appointment error:', error);
             const errorAlert = await this.alertCtrl.create({
-                header: 'Error',
-                message: error.error?.message || 'Failed to create appointment. Please try again later.',
-                buttons: ['OK']
+              header: 'Error',
+              message: error.error?.message || 'Failed to create appointment. Please try again later.',
+              buttons: ['OK']
             });
             await errorAlert.present();
-        }
-    );
-}
+          }
+        );
+    } catch (error) {
+      console.error('Error preparing form data:', error);
+      const errorAlert = await this.alertCtrl.create({
+        header: 'Error',
+        message: 'An unexpected error occurred. Please try again.',
+        buttons: ['OK']
+      });
+      await errorAlert.present();
+    }
+  }
 
-goToPage(page: string) {
-  this.router.navigateByUrl('/' + page);
-}
+  goToPage(page: string) {
+    this.router.navigateByUrl('/' + page);
+  }
 }

@@ -18,7 +18,8 @@ const routes: Routes = [
 
   {
     path: 'login',
-    component: LoginPage
+    loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
+
   },
   {
     path: 'appointment/:email',
@@ -27,10 +28,19 @@ const routes: Routes = [
   {
     path: 'doctorlist',
     loadChildren: () => import('./doctorlist/doctorlist.module').then( m => m.DoctorlistPageModule)
-  },  {
+  },
+  {
     path: 'accueil',
     loadChildren: () => import('./accueil/accueil.module').then( m => m.AccueilPageModule)
+  },
+  {
+    path: 'signup',
+    loadChildren: () => import('./signup/signup.module').then( m => m.SignupPageModule)
+  },  {
+    path: 'userprofile',
+    loadChildren: () => import('./userprofile/userprofile.module').then( m => m.UserprofilePageModule)
   }
+
 
 
 ]

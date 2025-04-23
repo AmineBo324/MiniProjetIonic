@@ -40,23 +40,11 @@ ion-content {
 }
 
 ion-item {
-    background: white;
-    border-radius: 10px;
-    margin-bottom: 10px;
-
-    ion-input {
-        color: #647890;
-    }
-}
-
-.password_forgot {
-    text-align: right;
-
-    ion-button {
-        font-size: 12px;
-        color: #175dd7;
-    }
-}
+    --border-radius: 10px;
+    margin-bottom: 15px;
+    --background: #f8f8f8;
+  }
+  
 
 .sign-btn-wrap{
     text-align: center;

@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/accueil"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Profil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="user" class="profile-container">
+    <!-- Avatar -->
+    <div class="profile-avatar">
+      <img src="/assets/images/user.jfif" alt="Photo de profil" />
+    </div>
+    
+    <!-- Nom et email -->
+    <div class="profile-name">{{ user.nom }} {{ user.prenom }}</div>
+    <div class="profile-email">{{ user.email }}</div>
+    
+    <!-- Détails du profil -->
+    <div class="profile-details">
+      <div class="detail-item">
+        <ion-icon name="call-outline" class="detail-icon"></ion-icon>
+        <div class="detail-content">
+          <div class="detail-label">Téléphone</div>
+          <div class="detail-value">{{ user.telephone }}</div>
+        </div>
+      </div>
+      
+      <div class="detail-item">
+        <ion-icon name="location-outline" class="detail-icon"></ion-icon>
+        <div class="detail-content">
+          <div class="detail-label">Pays</div>
+          <div class="detail-value">{{ user.adresse }}</div>
+        </div>
+      </div>
+      
+      <div class="detail-item">
+        <ion-icon name="calendar-outline" class="detail-icon"></ion-icon>
+        <div class="detail-content">
+          <div class="detail-label">Date de naissance</div>
+          <div class="detail-value">{{ user.date_naissance }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Appointments Section -->
+    <div class="appointments-section">
+      <h2 class="appointments-title">Mes Rendez-vous</h2>
+      <ion-list *ngIf="appointments.length > 0" class="appointments-list">
+        <ion-item *ngFor="let appointment of appointments" class="appointment-item">
+          <ion-icon name="calendar-outline" slot="start"></ion-icon>
+          <ion-label>
+            <h3>{{ appointment.date }}</h3>
+            <p>Horaire: {{ appointment.start_time || 'N/A' }} - {{ appointment.end_time || 'N/A' }}</p>
+            <p>Docteur: {{ appointment.doctor_email }}</p>
+            <p>Raison: {{ appointment.complaint }}</p>
+            <p *ngIf="appointment.document_paths?.length > 0">
+              Documents:
+              <span *ngFor="let doc of appointment.document_paths; let last = last">
+                <a [href]="getDocumentUrl(doc)" target="_blank">{{ getDocumentName(doc) }}</a>{{ last ? '' : ', ' }}
+              </span>
+            </p>
+            <p *ngIf="!appointment.document_paths || appointment.document_paths.length === 0">
+              Documents: Aucun
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+      <div *ngIf="appointments.length === 0" class="no-appointments">
+        Aucun rendez-vous trouvé
+      </div>
+    </div>
+  </div>
+  
+  <!-- Message d'erreur -->
+  <div *ngIf="!user && !isLoading" class="error-message">
+    Utilisateur non trouvé
+  </div>
+  
+  <!-- Spinner de chargement -->
+  <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar class="footer-toolbar">
+    <ion-buttons class="footer-buttons">
+      <ion-button (click)="goToPage('accueil')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="home-outline"></ion-icon>
+          <span>Accueil</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('doctorlist')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Medecins</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>Profil</span>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

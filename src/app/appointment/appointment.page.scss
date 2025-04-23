@@ -72,6 +72,38 @@ $background-color: #f8f9fa;
   gap: 10px;
 }
 
+/* Styles pour le conteneur d'upload */
+.upload-container {
+  width: 100%;
+  margin: 10px 0;
+  
+  .upload-btn {
+    height: 45px;
+    font-size: 14px;
+    --border-radius: 8px;
+    --border-color: #dddddd;
+    
+    ion-icon {
+      margin-right: 8px;
+      font-size: 20px;
+    }
+  }
+  
+  .file-info {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: #4CAF50;
+    display: flex;
+    align-items: center;
+    
+    &::before {
+      content: '✓';
+      margin-right: 5px;
+      font-weight: bold;
+    }
+  }
+}
+
 /* ======================== */
 /* 📌 Bouton de rendez-vous */
 /* ======================== */

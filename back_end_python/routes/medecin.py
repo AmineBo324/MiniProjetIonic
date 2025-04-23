@@ -33,12 +33,20 @@ def login():
 
     if not medecin:
         return jsonify({"error": "Médecin non trouvé"}), 404
+    
+    if not check_password_hash(medecin["password"], data["password"]):
+        return jsonify({"error": "Mot de passe incorrect"}), 401
+    
+    # Création du token JWT
+    access_token = create_access_token(identity=str(medecin["_id"]))
+    
 
     # Convert ObjectId to string and remove sensitive fields
     medecin["_id"] = str(medecin["_id"])
     medecin.pop("password", None)  # Remove password if it exists
 
     return jsonify({
+        "access_token": access_token,
         "medecin" : medecin
     }), 200
 

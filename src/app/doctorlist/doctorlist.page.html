@@ -1,6 +1,9 @@
 <!-- doctorlist.page.html -->
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/accueil"></ion-back-button>
+    </ion-buttons>
     <ion-title>Doctors List</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -81,7 +84,7 @@
         </div>
       </ion-button>
 
-      <ion-button (click)="goToPage('profile')" class="footer-button">
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
         <div class="button-content">
           <ion-icon name="person-outline"></ion-icon>
           <span>Profil</span>

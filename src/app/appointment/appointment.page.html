@@ -45,6 +45,12 @@
         <ion-input [(ngModel)]="patientName" placeholder="Enter your name"></ion-input>
       </ion-item>
 
+      <!-- Patient's Email -->
+      <ion-item>
+        <ion-label position="stacked">✉️ Patient's Email</ion-label>
+        <ion-input [(ngModel)]="patientEmail" type="email" placeholder="Enter your email"></ion-input>
+      </ion-item>
+
       <!-- Weekly Calendar -->
   <ion-card class="week-calendar">
     <div class="week-navigation">
@@ -109,6 +115,20 @@
         <ion-textarea [(ngModel)]="complaint" placeholder="Describe your symptoms..."></ion-textarea>
       </ion-item>
 
+      <!-- Document Upload -->
+      <ion-item>
+        <ion-label position="stacked">📎 Medical Documents</ion-label>
+          <div class="upload-container">
+          <ion-button expand="block" fill="outline" class="upload-btn" (click)="uploadDocument()">
+          <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+          Upload Documents
+          </ion-button>
+          <p *ngIf="uploadedFiles.length > 0" class="file-info">
+          {{ uploadedFiles.length }} file(s) uploaded
+          </p>
+          </div>
+      </ion-item>
+
       <!-- Appointment Button -->
       <ion-button expand="full" class="appointment-btn" shape="round" (click)="makeAppointment()">
          Book Appointment
@@ -135,7 +155,7 @@
         </div>
       </ion-button>
 
-      <ion-button (click)="goToPage('profile')" class="footer-button">
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
         <div class="button-content">
           <ion-icon name="person-outline"></ion-icon>
           <span>Profil</span>

@@ -31,48 +31,46 @@ export class LoginPage {
 
   async login() {
     if (this.loginForm.invalid) {
-      await this.showToast('Please fill all fields correctly');
+      await this.presentToast('Please fill all fields correctly','danger');
       return;
     }
 
     this.isLoading = true;
     
     try {
-      const response: any = await this.http.post('http://localhost:5000/medecin/login', {
+      const response: any = await this.http.post('http://localhost:5000/patient/login', {
         email: this.loginForm.value.email,
         password: this.loginForm.value.password
       }).toPromise();
 
       // Store the token and user data (you might want to use a service for this)
       localStorage.setItem('auth_token', response.access_token);
-      localStorage.setItem('medecin', JSON.stringify(response.medecin));
+      localStorage.setItem('patient', JSON.stringify(response.patient));
+      console.log(response)
 
-      await this.showToast('Login successful');
+      await this.presentToast('Login successful','success');
       this.router.navigate(['/accueil']);
-      console.log(response) 
+      
     } catch (error: any) {
       console.error('Login error:', error);
       const errorMessage = error.error?.error || 'Login failed. Please try again.';
-      await this.showToast(errorMessage);
+      await this.presentToast(errorMessage,'danger');
     } finally {
       this.isLoading = false;
     }
   }
 
-  async showToast(message: string) {
+  async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
-      duration: 3000,
+      duration:500,
+      color,
       position: 'top'
     });
     await toast.present();
   }
 
-  navigateToForgotPassword() {
-    this.router.navigate(['/forgot-password']);
-  }
-
-  navigateToSignup() {
-    this.router.navigate(['/signup']);
+  goToPage(page: string) {
+    this.router.navigateByUrl('/' + page);
   }
 }
