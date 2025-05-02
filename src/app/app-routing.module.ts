@@ -7,10 +7,6 @@ import { AppointmentPage } from './appointment/appointment.page';
 
 const routes: Routes = [
   {
-    path: 'home',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
-  },
-  {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full'
@@ -36,7 +32,8 @@ const routes: Routes = [
   {
     path: 'signup',
     loadChildren: () => import('./signup/signup.module').then( m => m.SignupPageModule)
-  },  {
+  },
+  {
     path: 'userprofile',
     loadChildren: () => import('./userprofile/userprofile.module').then( m => m.UserprofilePageModule)
   }

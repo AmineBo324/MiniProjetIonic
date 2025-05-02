@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
+//jour 
 interface DaySlot {
   date: string; // YYYY-MM-DD
   dayName: string; // Mon, Tue, etc.
@@ -12,6 +13,7 @@ interface DaySlot {
   isAvailable: boolean;
 }
 
+//crenau horaire
 interface TimeSlot {
   start: string;
   end: string;
@@ -63,11 +65,47 @@ export class AppointmentPage implements OnInit {
     this.generateWeekDays();
   }
 
+  loadDoctorDetails() {
+    this.http.get(`http://localhost:5000/medecin/doctor-details/${this.doctorEmail}`)
+      .subscribe((response: any) => {
+        this.doctor = response;
+        console.log(this.doctor);
+        this.loadDoctorAvailability();
+      }, error => {
+        console.error('Error fetching doctor details:', error);
+      });
+  }
+
+  loadDoctorAvailability() {
+    this.http.get<any>(`http://localhost:5000/medecin/availability/${this.doctorEmail}`).subscribe(
+      (response) => {
+        this.availability = response.availability.reduce((acc: any, entry: string) => {
+          const [dayName, time] = entry.split(' ');
+          if (!acc[dayName]) {
+            acc[dayName] = [];
+          }
+          acc[dayName].push(time);
+          return acc;
+        }, {});
+  
+        console.log('Disponibilités chargées:', this.availability);
+        this.generateWeekDays();
+      },
+      (error) => {
+        console.error('Erreur:', error);
+      }
+    );
+  }
+
   generateWeekDays() {
     const startOfWeek = new Date(this.currentWeekStart);
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Start from Sunday
     
-    this.weekDays = Array.from({ length: 7 }, (_, i) => {
+    // Initialize empty array for week days
+    this.weekDays = [];
+    
+    // Loop through 7 days (Sunday to Saturday)
+    for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(date.getDate() + i);
       
@@ -75,44 +113,26 @@ export class AppointmentPage implements OnInit {
       const dayName = this.getDayName(date.getDay());
       const isAvailable = this.availability[dayName] && this.availability[dayName].length > 0;
       
-      return {
+      // Add day object to the weekDays array
+      this.weekDays.push({
         date: dateStr,
         dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
         dateNumber: date.getDate(),
         isAvailable: isAvailable
-      };
-    });
+      });
+    }
   }
 
-  previousWeek() {
-    this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
-    this.generateWeekDays();
-    this.selectedDate = null;
-    this.availableSlots = [];
-  }
-
-  nextWeek() {
-    this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
-    this.generateWeekDays();
-    this.selectedDate = null;
-    this.availableSlots = [];
-  }
+  
 
   async selectDate(date: string) {
     const dateObj = new Date(date);
+    console.log(dateObj)
     const dayName = this.getDayName(dateObj.getDay());
-    
-    if (!this.isDayAvailable(dayName)) {
-      const alert = await this.alertCtrl.create({
-        header: 'Not Available',
-        message: 'The doctor is not available on this day',
-        buttons: ['OK']
-      });
-      await alert.present();
-      return;
-    }
+    console.log(dayName)
     
     this.selectedDate = date;
+    console.log(this.selectedDate)
     this.selectedSlot = null;
     
     // Get the doctor's working hours for this day
@@ -142,12 +162,13 @@ export class AppointmentPage implements OnInit {
     const slots: TimeSlot[] = [];
     const slotDurationMs = this.slotDuration * 60 * 1000;
     
-    // Parse working hours
-    const [startHour, startMinute] = this.workingHours.start.split(':').map(Number);
+    // Parse working hours ex : 14:00
+    const [startHour, startMinute] = this.workingHours.start.split(':').map(Number);// startHour : 14 , startMinute : 0
     const [endHour, endMinute] = this.workingHours.end.split(':').map(Number);
     
     const startTime = new Date();
     startTime.setHours(startHour, startMinute, 0, 0);
+    console.log(startTime)
     
     const endTime = new Date();
     endTime.setHours(endHour, endMinute, 0, 0);
@@ -213,36 +234,6 @@ export class AppointmentPage implements OnInit {
     return !!this.availability[dayName]?.length;
   }
 
-  loadDoctorDetails() {
-    this.http.get(`http://localhost:5000/medecin/doctor-details/${this.doctorEmail}`)
-      .subscribe((response: any) => {
-        this.doctor = response;
-        this.loadDoctorAvailability();
-      }, error => {
-        console.error('Error fetching doctor details:', error);
-      });
-  }
-
-  loadDoctorAvailability() {
-    this.http.get<any>(`http://localhost:5000/medecin/availability/${this.doctorEmail}`).subscribe(
-      (response) => {
-        this.availability = response.availability.reduce((acc: any, entry: string) => {
-          const [dayName, time] = entry.split(' ');
-          if (!acc[dayName]) {
-            acc[dayName] = [];
-          }
-          acc[dayName].push(time);
-          return acc;
-        }, {});
-  
-        console.log('Disponibilités chargées:', this.availability);
-        this.generateWeekDays();
-      },
-      (error) => {
-        console.error('Erreur:', error);
-      }
-    );
-  }
 
   async uploadDocument() {
     // Créer un élément input de type file invisible
@@ -259,7 +250,6 @@ export class AppointmentPage implements OnInit {
         for (let i = 0; i < files.length; i++) {
           this.uploadedFiles.push(files[i]);
         }
-        
         // Afficher une notification
         this.presentToast(`${files.length} file(s) selected`);
       }
