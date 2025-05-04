@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
 from models import Appointment
 from config import mongo
-import os
+import base64
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
+from bson import ObjectId
 
 
 appointment = Blueprint("appointment", __name__)
@@ -19,44 +20,47 @@ def allowed_file(filename):
 
 @appointment.route("/create_appointment", methods=["POST"])
 def create_appointment():
-    # Check if the request contains form data with files
-    if 'documents' not in request.files:
-        # Handle JSON data for appointment without files
-        data = request.json
-        documents_paths = []
-    else:
-        # Handle multipart form data with files
-        data = request.form.to_dict()
-        documents = request.files.getlist('documents')
-        documents_paths = []
-        
-        # Create uploads directory if it doesn't exist
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-        
-        # Save each uploaded file
-        for file in documents:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                # Create patient-specific folder using email as identifier
-                patient_folder = os.path.join(UPLOAD_FOLDER, data.get('patient_email', 'unknown'))
-                if not os.path.exists(patient_folder):
-                    os.makedirs(patient_folder)
-                
-                # Create a unique filename with timestamp
-                from datetime import datetime
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
-                filepath = os.path.join(patient_folder, timestamp + filename)
-                file.save(filepath)
-                documents_paths.append(filepath)
+    # Initialize variables
+    data = {}
+    documents_base64 = []
     
-    required_fields = ["patient_name", "patient_email", "doctor_email", "date", "start_time", "end_time", "complaint"]
+    # Check if request is multipart/form-data (with files) or JSON
+    if request.content_type.startswith('multipart/form-data'):
+        data = request.form.to_dict()
+        files = request.files.getlist('documents')
+        
+        # Process each file
+        for file in files:
+            if file and allowed_file(file.filename):
+                file_content = file.read()
+                documents_base64.append({
+                    "filename": secure_filename(file.filename),
+                    "content": base64.b64encode(file_content).decode('utf-8'),
+                    "mimetype": file.mimetype,
+                    "size": len(file_content)
+                })
+    else:
+        # Handle JSON request (could contain base64 files)
+        data = request.get_json()
+        if 'documents_base64' in data:
+            for doc in data['documents_base64']:
+                if isinstance(doc, dict) and 'content' in doc:
+                    documents_base64.append({
+                        "filename": doc.get('filename', 'document'),
+                        "content": doc['content'],  # Assume already base64
+                        "mimetype": doc.get('mimetype', 'application/octet-stream'),
+                        "size": len(base64.b64decode(doc['content']))
+                    })
+    
+    # Validate required fields
+    required_fields = ["patient_name", "patient_email", "doctor_email", 
+                      "date", "start_time", "end_time", "complaint"]
     
     if not all(field in data for field in required_fields):
-        return jsonify({"message": "Missing fields"}), 400
+        return jsonify({"message": "Missing required fields"}), 400
     
     try:
-        # Check if an overlapping appointment exists
+        # Check for overlapping appointments
         overlapping_appointment = Appointment.find_overlapping_appointment(
             data["doctor_email"],
             data["date"],
@@ -67,27 +71,58 @@ def create_appointment():
         if overlapping_appointment:
             return jsonify({"message": "Selected time slot is unavailable"}), 400
         
-        # Create and save the new appointment
-        new_appointment = Appointment.create_appointment(
-            data["patient_name"],
-            data["patient_email"],
-            data["doctor_email"],
-            data["date"],
-            data["start_time"],
-            data["end_time"],
-            data["complaint"],
-            documents_paths  # Pass the list of document paths
-        )
+        # Create and save the new appointment with base64 files
+        new_appointment = {
+            "patient_name": data["patient_name"],
+            "patient_email": data["patient_email"],
+            "doctor_email": data["doctor_email"],
+            "date": data["date"],
+            "start_time": data["start_time"],
+            "end_time": data["end_time"],
+            "complaint": data["complaint"],
+            "documents": documents_base64
+        }
+        
+        # Insert into MongoDB
+        result = mongo.db.appointments.insert_one(new_appointment)
+        new_appointment['_id'] = str(result.inserted_id)
+        
+        # Remove file contents from response to reduce payload size
+        response_docs = [{"filename": doc['filename'], "size": doc['size']} 
+                        for doc in documents_base64]
         
         return jsonify({
-            "message": "Appointment created successfully", 
+            "message": "Appointment created successfully",
             "appointment": new_appointment,
-            "documents": documents_paths
+            "documents": response_docs
         }), 201
         
     except Exception as e:
         return jsonify({"message": "Error creating appointment", "error": str(e)}), 500
     
+
+@appointment.route("/get_document/<appointment_id>/<int:doc_index>", methods=["GET"])
+def get_document(appointment_id, doc_index):
+    try:
+        appointment = mongo.db.appointments.find_one(
+            {"_id": ObjectId(appointment_id)},
+            {"documents": {"$slice": [doc_index, 1]}}
+        )
+        
+        if not appointment or not appointment.get('documents'):
+            return jsonify({"error": "Document not found"}), 404
+            
+        document = appointment['documents'][0]
+        return jsonify({
+            "filename": document['filename'],
+            "mimetype": document['mimetype'],
+            "content": document['content'],  # Base64 string
+            "size": document['size']
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @appointment.route("/retrieve_appointment", methods=["GET"])
 def get_appointments_by_doctor_and_time():
