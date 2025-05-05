@@ -1,0 +1,130 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mon Profil</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="editMode ? toggleEdit() : saveProfile()">
+        {{ editMode ? 'Annuler' : 'Modifier' }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-spinner *ngIf="isLoading"></ion-spinner>
+  <ion-card *ngIf="!isLoading && doctor">
+    <ion-card-header>
+      <ion-avatar *ngIf="doctor.image || defaultImage">
+        <img [src]="getProfileImage(doctor.image)" (error)="handleImageError($event)" alt="Doctor Profile">
+      </ion-avatar>
+      <ion-card-title>{{ doctor.prenom }} {{ doctor.nom }}</ion-card-title>
+      <ion-card-subtitle>{{ doctor.specialite }}</ion-card-subtitle>
+
+      <div class="rating-container">
+        <ion-text>
+          <h4>Rating: {{ doctor.rating || 0 }}/5</h4>
+        </ion-text>
+        <div class="stars">
+          <ion-icon 
+            *ngFor="let star of [1,2,3,4,5]" 
+            [name]="star <= (doctor.rating || 0) ? 'star' : 'star-outline'"
+            color="warning">
+          </ion-icon>
+        </div>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-list>
+        <ion-item>
+          <ion-label position="stacked">Email</ion-label>
+          <ion-input [(ngModel)]="doctor.email" readonly></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Spécialité</ion-label>
+          <ion-input [(ngModel)]="doctor.specialite" [readonly]="!editMode"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="stacked">Localisation</ion-label>
+          <ion-input [(ngModel)]="doctor.zone_geographique" [readonly]="!editMode"></ion-input>
+        </ion-item>
+
+        <ion-list-header>
+          <ion-label>Disponibilités</ion-label>
+          <ion-button *ngIf="editMode" fill="clear" (click)="addAvailability()">
+            <ion-icon name="add"></ion-icon>
+          </ion-button>
+        </ion-list-header>
+
+        <ion-item *ngFor="let slot of doctor.availability; let i = index">
+          <ion-input [(ngModel)]="slot.date" type="date" [readonly]="!editMode"></ion-input>
+          <ion-input [(ngModel)]="slot.start" type="time" [readonly]="!editMode"></ion-input>
+          <ion-input [(ngModel)]="slot.end" type="time" [readonly]="!editMode"></ion-input>
+          <ion-button *ngIf="editMode" fill="clear" color="danger" (click)="removeAvailability(i)">
+            <ion-icon name="trash"></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        <ion-button *ngIf="editMode" (click)="updateAvailability()">Sauvegarder Disponibilités</ion-button>
+      </ion-list>
+
+      <!-- Appointments Section -->
+      <ion-list-header>
+        <ion-label>Rendez-vous</ion-label>
+      </ion-list-header>
+      <ion-item>
+        <ion-label position="stacked">Sélectionner une date</ion-label>
+        <ion-input type="date" [(ngModel)]="selectedDate" (ionChange)="onDateChange($event)"></ion-input>
+      </ion-item>
+      <ion-item *ngFor="let appointment of appointments; trackBy: trackById">
+        <ion-label>
+          <h2>{{ appointment.patient_name }}</h2>
+          <p>{{ appointment.date }} {{ appointment.start_time }} - {{ appointment.end_time }}</p>
+          <p>Plainte: {{ appointment.complaint }}</p>
+          <p>Statut: {{ appointment.status }}</p>
+        </ion-label>
+        <ion-button *ngIf="appointment.status === 'pending'" fill="clear" (click)="acceptAppointment(appointment._id)">
+          Accepter
+        </ion-button>
+        <ion-button *ngIf="appointment.status === 'pending'" fill="clear" color="danger" (click)="rejectAppointment(appointment._id)">
+          Rejeter
+        </ion-button>
+        <ion-button *ngIf="appointment.status === 'accepted'" fill="clear" color="danger" (click)="cancelAppointment(appointment._id)">
+          Annuler
+        </ion-button>
+      </ion-item>
+
+      <!-- Documents Section -->
+      <ion-list-header>
+        <ion-label>Documents</ion-label>
+      </ion-list-header>
+      <ion-item *ngFor="let document of documents; trackBy: trackById">
+        <ion-label>
+          <h2>{{ document.name }}</h2>
+          <p>Envoyé par: {{ document.patient_name }}</p>
+          <p>Annotations: {{ document.annotations.length > 0 ? document.annotations.join(', ') : 'Aucune' }}</p>
+        </ion-label>
+        <ion-button fill="clear" (click)="openAnnotationPrompt(document._id)">
+          Annoter
+        </ion-button>
+      </ion-item>
+
+      <!-- Consultations Section -->
+      <ion-list-header>
+        <ion-label>Consultations</ion-label>
+      </ion-list-header>
+      <ion-item *ngFor="let consultation of consultations; trackBy: trackById">
+        <ion-label>
+          <h2>Consultation {{ consultation._id }}</h2>
+          <p>Diagnostic: {{ consultation.diagnosis }}</p>
+          <p>Prescription: {{ consultation.prescription }}</p>
+          <p>Documents: {{ consultation.documents.join(', ') }}</p>
+        </ion-label>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

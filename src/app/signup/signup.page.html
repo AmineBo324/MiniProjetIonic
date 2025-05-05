@@ -1,0 +1,118 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title></ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card class="header-card">
+    <div class="image-container">
+      <ion-img src="assets/images/header1.png"></ion-img>
+      <h2 class="welcome-text">Welcome</h2>
+    </div>
+  </ion-card>
+
+  <ion-card-content>
+    <form [formGroup]="signupForm" (ngSubmit)="signup()">
+      <div class="wrapform">
+        <ion-item>
+          <ion-icon name="person-outline"></ion-icon>
+          <ion-input 
+            type="text" 
+            formControlName="nom" 
+            required 
+            placeholder="Nom"
+            autocomplete="family-name">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="person-outline"></ion-icon>
+          <ion-input 
+            type="text" 
+            formControlName="prenom" 
+            required 
+            placeholder="Prénom"
+            autocomplete="given-name">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="mail-outline"></ion-icon>
+          <ion-input 
+            type="email" 
+            formControlName="email" 
+            required 
+            placeholder="Email"
+            autocomplete="email">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <ion-input 
+            type="password" 
+            formControlName="password" 
+            required 
+            placeholder="Password"
+            autocomplete="new-password">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="calendar-outline"></ion-icon>
+          <ion-datetime 
+            formControlName="date_naissance" 
+            displayFormat="YYYY-MM-DD" 
+            placeholder="Date de Naissance"
+            required>
+          </ion-datetime>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="people-outline"></ion-icon>
+          <ion-select 
+            formControlName="genre" 
+            placeholder="Genre" 
+            required>
+            <ion-select-option value="M">Masculin</ion-select-option>
+            <ion-select-option value="F">Féminin</ion-select-option>
+            <ion-select-option value="Autre">Autre</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="home-outline"></ion-icon>
+          <ion-input 
+            type="text" 
+            formControlName="adresse" 
+            required 
+            placeholder="Adresse"
+            autocomplete="street-address">
+          </ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="call-outline"></ion-icon>
+          <ion-input 
+            type="tel" 
+            formControlName="telephone" 
+            required 
+            placeholder="Téléphone"
+            autocomplete="tel">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="sign-btn-wrap">
+        <ion-button 
+          type="submit"
+          shape="round" 
+          fill="solid" 
+          class="sign-btn"
+          [disabled]="signupForm.invalid || isLoading">
+          <ion-spinner *ngIf="isLoading"></ion-spinner>
+          <span *ngIf="!isLoading">Sign Up</span>
+        </ion-button>
+      </div>
+    </form>
+  </ion-card-content>
+  <div class="signup-section">
+    <p>Already have an account? 
+      <a (click)="goToPage('login')">Login</a>
+    </p>
+  </div>
+</ion-content>

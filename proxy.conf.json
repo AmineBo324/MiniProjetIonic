@@ -1,0 +1,22 @@
+{
+    "/medecin/*": {
+      "target": "http://localhost:5000",
+      "secure": false,
+      "changeOrigin": true
+    },
+    "/patient/*": {
+      "target": "http://localhost:5000",
+      "secure": false,
+      "changeOrigin": true
+    },
+    "/profile/*": {
+      "target": "http://localhost:5000",
+      "secure": false,
+      "changeOrigin": true
+    },
+    "/register": {
+      "target": "http://localhost:5000",
+      "secure": false,
+      "changeOrigin": true
+    }
+  }

@@ -45,16 +45,22 @@
         <ion-input [(ngModel)]="patientName" placeholder="Enter your name"></ion-input>
       </ion-item>
 
+      <!-- Patient's Email -->
+      <ion-item>
+        <ion-label position="stacked">✉️ Patient's Email</ion-label>
+        <ion-input [(ngModel)]="patientEmail" type="email" placeholder="Enter your email"></ion-input>
+      </ion-item>
+
       <!-- Weekly Calendar -->
   <ion-card class="week-calendar">
     <div class="week-navigation">
-      <ion-button fill="clear" (click)="previousWeek()">
+      <ion-button fill="clear">
         <ion-icon name="chevron-back"></ion-icon>
       </ion-button>
       <ion-label>
         Week of {{ weekDays[0].date | date:'MMM d' }} - {{ weekDays[6].date | date:'MMM d' }}
       </ion-label>
-      <ion-button fill="clear" (click)="nextWeek()">
+      <ion-button fill="clear">
         <ion-icon name="chevron-forward"></ion-icon>
       </ion-button>
     </div>
@@ -109,6 +115,20 @@
         <ion-textarea [(ngModel)]="complaint" placeholder="Describe your symptoms..."></ion-textarea>
       </ion-item>
 
+      <!-- Document Upload -->
+      <ion-item>
+        <ion-label position="stacked">📎 Medical Documents</ion-label>
+          <div class="upload-container">
+          <ion-button expand="block" fill="outline" class="upload-btn" (click)="uploadDocument()">
+          <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+          Upload Documents
+          </ion-button>
+          <p *ngIf="uploadedFiles.length > 0" class="file-info">
+          {{ uploadedFiles.length }} file(s) uploaded
+          </p>
+          </div>
+      </ion-item>
+
       <!-- Appointment Button -->
       <ion-button expand="full" class="appointment-btn" shape="round" (click)="makeAppointment()">
          Book Appointment
@@ -118,4 +138,30 @@
   </ion-card>
 
 </ion-content>
+<ion-footer>
+  <ion-toolbar class="footer-toolbar">
+    <ion-buttons class="footer-buttons">
+      <ion-button (click)="goToPage('accueil')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="home-outline"></ion-icon>
+          <span>Accueil</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('doctorlist')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Medecins</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>Profil</span>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
  

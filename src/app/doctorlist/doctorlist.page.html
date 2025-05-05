@@ -1,6 +1,9 @@
 <!-- doctorlist.page.html -->
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/accueil"></ion-back-button>
+    </ion-buttons>
     <ion-title>Doctors List</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -63,5 +66,30 @@
       </div>
     </div>
   </div>
-  <h2>kdjfbvkdf</h2>
 </ion-content>
+<ion-footer>
+  <ion-toolbar class="footer-toolbar">
+    <ion-buttons class="footer-buttons">
+      <ion-button (click)="goToPage('accueil')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="home-outline"></ion-icon>
+          <span>Accueil</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('doctorlist')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Medecins</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>Profil</span>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

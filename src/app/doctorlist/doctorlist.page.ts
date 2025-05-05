@@ -91,4 +91,8 @@ export class DoctorlistPage implements OnInit {
   viewDoctorDetails(email: string) {
     this.router.navigate(['/appointment', email]);
   }
+
+  goToPage(page: string) {
+    this.router.navigateByUrl('/' + page);
+  }
 }
