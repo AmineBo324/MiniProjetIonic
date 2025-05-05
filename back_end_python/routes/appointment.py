@@ -4,9 +4,21 @@ from config import mongo
 import os
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
+import base64
+
+from bson import ObjectId
 
 
 appointment = Blueprint("appointment", __name__)
+
+# Define uploads folder
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'}
+
+# Helper function to check if file extension is allowed
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.split('.')[-1].lower() in ALLOWED_EXTENSIONS
 
 # Define uploads folder
 UPLOAD_FOLDER = 'uploads'
@@ -52,17 +64,58 @@ def create_appointment():
     
     required_fields = ["patient_name", "patient_email", "doctor_email", "date", "start_time", "end_time", "complaint"]
     
+    # Initialize variables
+    data = {}
+    documents_base64 = []
+    
+    # Check if request is multipart/form-data (with files) or JSON
+    if request.content_type.startswith('multipart/form-data'):
+        data = request.form.to_dict()
+        files = request.files.getlist('documents')
+        
+        # Process each file
+        for file in files:
+            if file and allowed_file(file.filename):
+                file_content = file.read()
+                documents_base64.append({
+                    "filename": secure_filename(file.filename),
+                    "content": base64.b64encode(file_content).decode('utf-8'),
+                    "mimetype": file.mimetype,
+                    "size": len(file_content)
+                })
+    else:
+        # Handle JSON request (could contain base64 files)
+        data = request.get_json()
+        if 'documents_base64' in data:
+            for doc in data['documents_base64']:
+                if isinstance(doc, dict) and 'content' in doc:
+                    documents_base64.append({
+                        "filename": doc.get('filename', 'document'),
+                        "content": doc['content'],  # Assume already base64
+                        "mimetype": doc.get('mimetype', 'application/octet-stream'),
+                        "size": len(base64.b64decode(doc['content']))
+                    })
+    
+    # Validate required fields
+    required_fields = ["patient_name", "patient_email", "doctor_email", 
+                      "date", "start_time", "end_time", "complaint"]
+    
     if not all(field in data for field in required_fields):
+        return jsonify({"message": "Missing required fields"}), 400
+    
         return jsonify({"message": "Missing fields"}), 400
     
     try:
-        # Check if an overlapping appointment exists
+        # Check for overlapping appointments
         overlapping_appointment = Appointment.find_overlapping_appointment(
+            data["doctor_email"],
+            data["date"],
             data["doctor_email"],
             data["date"],
             data["start_time"],
             data["end_time"]
         )
+        
         
         if overlapping_appointment:
             return jsonify({"message": "Selected time slot is unavailable"}), 400
@@ -85,9 +138,59 @@ def create_appointment():
             "documents": documents_paths
         }), 201
         
+        
+        # Create and save the new appointment with base64 files
+        new_appointment = {
+            "patient_name": data["patient_name"],
+            "patient_email": data["patient_email"],
+            "doctor_email": data["doctor_email"],
+            "date": data["date"],
+            "start_time": data["start_time"],
+            "end_time": data["end_time"],
+            "complaint": data["complaint"],
+            "documents": documents_base64
+        }
+        
+        # Insert into MongoDB
+        result = mongo.db.appointments.insert_one(new_appointment)
+        new_appointment['_id'] = str(result.inserted_id)
+        
+        # Remove file contents from response to reduce payload size
+        response_docs = [{"filename": doc['filename'], "size": doc['size']} 
+                        for doc in documents_base64]
+        
+        return jsonify({
+            "message": "Appointment created successfully",
+            "appointment": new_appointment,
+            "documents": response_docs
+        }), 201
+        
     except Exception as e:
         return jsonify({"message": "Error creating appointment", "error": str(e)}), 500
     
+
+@appointment.route("/get_document/<appointment_id>/<int:doc_index>", methods=["GET"])
+def get_document(appointment_id, doc_index):
+    try:
+        appointment = mongo.db.appointments.find_one(
+            {"_id": ObjectId(appointment_id)},
+            {"documents": {"$slice": [doc_index, 1]}}
+        )
+        
+        if not appointment or not appointment.get('documents'):
+            return jsonify({"error": "Document not found"}), 404
+            
+        document = appointment['documents'][0]
+        return jsonify({
+            "filename": document['filename'],
+            "mimetype": document['mimetype'],
+            "content": document['content'],  # Base64 string
+            "size": document['size']
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @appointment.route("/retrieve_appointment", methods=["GET"])
 def get_appointments_by_doctor_and_time():
@@ -127,6 +230,43 @@ def get_appointments_by_doctor_and_time():
         results.append(appointment)
     
     return jsonify(results)
+
+
+@appointment.route("/patient_appointments", methods=["GET"])
+def get_patient_appointments():
+    # Get patient email from request.args (query string)
+    patient_email = request.args.get("patient_email")
+    
+    # Validate required parameter
+    if not patient_email:
+        return jsonify({"error": "patient_email is a required parameter"}), 400
+    
+    try:
+        # Query the database
+        appointments = mongo.db.appointments
+        query = {"patient_email": patient_email}
+        
+        # Find and format results
+        results = []
+        for appointment in appointments.find(query).sort("date", 1):  # Sort by date ascending
+            # Convert ObjectId to string for JSON serialization
+            appointment["_id"] = str(appointment["_id"])
+            
+            # Add doctor details if needed
+            try:
+                doctor = mongo.db.doctors.find_one({"email": appointment["doctor_email"]})
+                if doctor:
+                    doctor["_id"] = str(doctor["_id"])
+                    appointment["doctor_details"] = doctor
+            except Exception as e:
+                print(f"Error fetching doctor details: {str(e)}")
+            
+            results.append(appointment)
+        
+        return jsonify(results)
+    
+    except Exception as e:
+        return jsonify({"error": f"Failed to retrieve appointments: {str(e)}"}), 500
 
 
 @appointment.route("/patient_appointments", methods=["GET"])

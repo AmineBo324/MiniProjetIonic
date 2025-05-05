@@ -42,6 +42,8 @@ const routes: Routes = [
 { path: 'profile-medecin', component: ProfileMedecinPage },
 
 
+
+
 ]
 @NgModule({
   imports: [

@@ -5,6 +5,8 @@ from models import Medecin
 from config import mongo
 from bson import ObjectId
 
+
+
 medecin = Blueprint("medecin", __name__)
 
 # Inscription Médecin

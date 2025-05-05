@@ -56,13 +56,14 @@
             <p>Horaire: {{ appointment.start_time || 'N/A' }} - {{ appointment.end_time || 'N/A' }}</p>
             <p>Docteur: {{ appointment.doctor_email }}</p>
             <p>Raison: {{ appointment.complaint }}</p>
-            <p *ngIf="appointment.document_paths?.length > 0">
-              Documents:
-              <span *ngFor="let doc of appointment.document_paths; let last = last">
-                <a [href]="getDocumentUrl(doc)" target="_blank">{{ getDocumentName(doc) }}</a>{{ last ? '' : ', ' }}
-              </span>
-            </p>
-            <p *ngIf="!appointment.document_paths || appointment.document_paths.length === 0">
+            <div *ngIf="hasDocuments(appointment)">
+              <p>Documents:</p>
+              <ion-chip *ngFor="let doc of appointment.documents; let i = index" (click)="viewDocument(appointment._id, i, doc.filename)" color="primary">
+                <ion-icon name="document-outline"></ion-icon>
+                <ion-label>{{ getDocumentName(doc) }}</ion-label>
+              </ion-chip>
+            </div>
+            <p *ngIf="!hasDocuments(appointment)">
               Documents: Aucun
             </p>
           </ion-label>

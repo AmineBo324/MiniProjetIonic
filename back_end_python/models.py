@@ -114,6 +114,7 @@ class Appointment:
         appointment = {
             "patient_name": patient_name,
             "patient_email": patient_email,
+            "patient_email": patient_email,
             "doctor_email": doctor_email,
             "date": date,
             "start_time": start_time,
