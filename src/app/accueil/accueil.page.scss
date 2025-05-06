@@ -139,6 +139,51 @@ ion-content {
   }
 }
 
+// Styles pour le bouton Se Connecter/Déconnecter
+.login-button-container {
+  margin: 24px 16px 8px;
+  
+  .login-btn {
+    --background: #{$primary-color};
+    --background-hover: #{$primary-dark};
+    --border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    height: 48px;
+    box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+    transition: all 0.3s ease;
+    
+    ion-icon {
+      margin-right: 8px;
+      font-size: 20px;
+    }
+    
+    &.logout-btn {
+      --background: #e74c3c;
+      --background-hover: #c0392b;
+    }
+  }
+}
+
+// Styles pour le bouton Voir Plus dans la section About Us
+.aboutUs {
+  .view-more-btn {
+    --background: #{$primary-color};
+    --background-hover: #{$primary-dark};
+    --border-radius: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    height: 48px;
+    box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+    transition: all 0.3s ease;
+    
+    ion-icon {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+  }
+}
+
 // Search bar styling
 .search-container {
   padding: 16px;
