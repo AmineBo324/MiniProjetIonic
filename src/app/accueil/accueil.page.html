@@ -1,184 +1,198 @@
 <ion-header>
-    <ion-toolbar class="header-toolbar" color="primary">
-      <div class="header-container">
-        <ion-buttons slot="start">
-          <ion-menu-button></ion-menu-button>
-        </ion-buttons>
-        <ion-title class="cabinet-title">Santeo</ion-title>
-      </div>
-    </ion-toolbar>
-  </ion-header>
+  <ion-toolbar class="header-toolbar" color="primary">
+    <div class="header-container">
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title class="cabinet-title">Santeo</ion-title>
+    </div>
+  </ion-toolbar>
+</ion-header>
 
-  
+
 
 <div class="ion-page" id="main-content">
-  <ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true">
 
-    <!-- Bannière -->
-     
-    <div class="banner relative h-[120px] flex items-center p-4 bg-gradient-to-r from-[#06668C] to-[#228fb9] rounded-lg shadow-lg">
-      <!-- Bouton de menu -->
-      <ion-menu-button class="menuB" color="primary" style=" width: 35px !important; height: 40px !important; margin: 0; transform: none;"></ion-menu-button>
-      
-      
-      <div class="centered-clinic-imager" style="width: 130px; height: 150px; margin: 0 auto; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-         <img src="assets/home/clinic4.png"
-               alt="Clinic Banner" [style.width.px]="130" 
-               [style.height.px]="150"
-               [style.borderRadius.%]="50"
-   [style.objectFit]="'cover'" />
-      </div>
-
-    <div class="ml-4 flex-1 text-left">
-      <div class="ad-banner" (click)="changeAdImage()">
-        <img [src]="adImages[currentAdIndex]" 
-             alt="Publicité"
-             style="width: 100%; height: auto; border-radius: 8px;" />
-        <div class="indicators">
-          <span *ngFor="let image of adImages; let i = index" 
-                [class.active]="i === currentAdIndex"
-                class="indicator-dot"></span>
-        </div>
-      </div>
+  <!-- Bannière -->
+   
+  <div class="banner relative h-[120px] flex items-center p-4 bg-gradient-to-r from-[#06668C] to-[#228fb9] rounded-lg shadow-lg">
+    <!-- Bouton de menu -->
+    <ion-menu-button class="menuB" color="primary" style=" width: 35px !important; height: 40px !important; margin: 0; transform: none;"></ion-menu-button>
+    
+    
+    <div class="centered-clinic-imager" style="width: 130px; height: 150px; margin: 0 auto; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+       <img src="assets/home/clinic4.png"
+             alt="Clinic Banner" [style.width.px]="130" 
+             [style.height.px]="150"
+             [style.borderRadius.%]="50"
+ [style.objectFit]="'cover'" />
     </div>
 
-        <!-- Section des Spécialités -->
-
-      <div class="section-header">
-        <h2>Spécialités</h2>
-      </div>
-      <div class="specialty-grid">
-        <div *ngFor="let specialty of specialties" class="specialty-item">
-          <div class="specialty-icon">
-            <ion-icon [name]="specialty.icon"></ion-icon>
-          </div>
-          <span>{{ specialty.name }}</span>
-        </div>
+  <div class="ml-4 flex-1 text-left">
+    <div class="ad-banner" (click)="changeAdImage()">
+      <img [src]="adImages[currentAdIndex]" 
+           alt="Publicité"
+           style="width: 100%; height: auto; border-radius: 8px;" />
+      <div class="indicators">
+        <span *ngFor="let image of adImages; let i = index" 
+              [class.active]="i === currentAdIndex"
+              class="indicator-dot"></span>
       </div>
     </div>
+  </div>
+  
 
-    <!-- Top Rated Doctors Section -->
+  <!-- Bouton Se Connecter/Déconnecter -->
+  <div class="login-button-container">
+    <ion-button expand="block" (click)="isLoggedIn ? logout() : goToPage('login')" class="login-btn" [ngClass]="{'logout-btn': isLoggedIn}">
+      <ion-icon [name]="isLoggedIn ? 'log-out-outline' : 'log-in-outline'" slot="start"></ion-icon>
+      {{ isLoggedIn ? 'Se déconnecter' : 'Se connecter' }}
+    </ion-button>
+  </div>
+
+  <!-- About Us Section -->
+  <div class="aboutUs mb-16 mt-10 bg-gradient-to-r from-[#06668C] to-[#228fb9] px-8 py-10 rounded-3xl shadow-xl transform hover:scale-105 transition-transform duration-500 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('/assets/wave.svg')] bg-cover bg-center opacity-20"></div>
+    <h2 class="text-3xl mb-8 font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#d6f2ff] drop-shadow-xl tracking-wide uppercase text-center">
+      A propos nous
+    </h2>
+    <div class="max-w-2xl mx-auto text-center bg-white/20 backdrop-blur-sm rounded-xl p-5 shadow-lg">
+      <p class="text-white text-lg leading-relaxed">
+        Clinique Santeo, basée à Tunis, est une clinique de référence offrant des services médicaux complets. Nos professionnels expérimentés vous assurent des soins de qualité dans un cadre moderne et chaleureux, pour vos consultations courantes ou traitements spécialisés.
+      </p>
+      <ion-button expand="block" class="view-more-btn mt-4">
+        <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+        Voir plus
+      </ion-button>
+    </div>
+  </div>
+      <!-- Section des Spécialités -->
+
+    <div class="section-header">
+      <h2>Spécialités</h2>
+    </div>
+    <div class="specialty-grid">
+      <div *ngFor="let specialty of specialties" class="specialty-item">
+        <div class="specialty-icon">
+          <ion-icon [name]="specialty.icon"></ion-icon>
+        </div>
+        <span>{{ specialty.name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Rated Doctors Section -->
 <div class="section-header mt-8">
-  <h2>Medecins</h2>
-  <ion-button fill="clear" size="small" (click) = "showAllDoctors()">Voir tout</ion-button>
+<h2>Medecins</h2>
+<ion-button fill="clear" size="small" (click) = "showAllDoctors()">Voir tout</ion-button>
 
 </div>
 
 <!-- Search Type Selector -->
 <div class="search-type-selector px-4 mb-4" *ngIf="showFilters">
-  <ion-segment [(ngModel)]="searchType" mode="md">
-    <ion-segment-button value="specialite">
-      <ion-label>Par spécialité</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="zone">
-      <ion-label>Par zone</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-  
-  <div class="search-input-container mt-3">
-    <ion-searchbar [(ngModel)]="searchTerm" 
-                  [placeholder]="searchType === 'specialite' ? 'Rechercher une spécialité...' : 'Rechercher une zone...'"
-                  class="custom-searchbar"></ion-searchbar>
-    <ion-button (click)="searchDoctors()" expand="block" class="mt-2">
-      Rechercher
-    </ion-button>
-  </div>
+<ion-segment [(ngModel)]="searchType" mode="md">
+  <ion-segment-button value="specialite">
+    <ion-label>Par spécialité</ion-label>
+  </ion-segment-button>
+  <ion-segment-button value="zone">
+    <ion-label>Par zone</ion-label>
+  </ion-segment-button>
+</ion-segment>
+
+<div class="search-input-container mt-3">
+  <ion-searchbar [(ngModel)]="searchTerm" 
+                [placeholder]="searchType === 'specialite' ? 'Rechercher une spécialité...' : 'Rechercher une zone...'"
+                class="custom-searchbar"></ion-searchbar>
+  <ion-button (click)="searchDoctors()" expand="block" class="mt-2">
+    Rechercher
+  </ion-button>
+</div>
 </div>
 
 <!-- Toggle Filter Button -->
 <div class="filter-toggle px-4 mb-4">
-  <ion-button fill="outline" size="small" (click)="toggleFilters()" expand="block">
-    <ion-icon [name]="showFilters ? 'chevron-up-outline' : 'options-outline'" slot="start"></ion-icon>
-    {{ showFilters ? 'Masquer les filtres' : 'Afficher les filtres' }}
-  </ion-button>
+<ion-button fill="outline" size="small" (click)="toggleFilters()" expand="block">
+  <ion-icon [name]="showFilters ? 'chevron-up-outline' : 'options-outline'" slot="start"></ion-icon>
+  {{ showFilters ? 'Masquer les filtres' : 'Afficher les filtres' }}
+</ion-button>
 </div>
 
 <!-- Doctors Grid -->
 <div class="doctors-grid" *ngIf="filteredDoctors && filteredDoctors.length > 0">
-  <ion-card *ngFor="let doctor of filteredDoctors" (click)="viewDoctorDetails(doctor.email)">
-    <div class="doctor-card-content">
-      <div class="doctor-avatar">
-        <ion-avatar>
-          <img [src]="doctor.image || 'assets/images/default-avatar.jpg'" [alt]="doctor.nom + ' ' + doctor.prenom" />
-        </ion-avatar>
-      </div>
-      <div class="doctor-info">
-        <h3>Dr. {{ doctor.nom }} {{ doctor.prenom }}</h3>
-        <p class="specialty">{{ doctor.specialite }}</p>
-        <p class="location">
-          <ion-icon name="location-outline"></ion-icon>
-          {{ doctor.zone_geographique }}
-        </p>
-        <div class="rating">
-          <ng-container *ngFor="let i of [1, 2, 3, 4, 5]">
-            <ion-icon [name]="i <= doctor.rating ? 'star' : (i - 0.5 <= doctor.rating ? 'star-half' : 'star-outline')" 
-                     class="filled"></ion-icon>
-          </ng-container>
-          <span>{{ doctor.rating }}</span>
-        </div>
+<ion-card *ngFor="let doctor of filteredDoctors" (click)="viewDoctorDetails(doctor.email)">
+  <div class="doctor-card-content">
+    <div class="doctor-avatar">
+      <ion-avatar>
+        <img [src]="doctor.image || 'assets/images/default-avatar.jpg'" [alt]="doctor.nom + ' ' + doctor.prenom" />
+      </ion-avatar>
+    </div>
+    <div class="doctor-info">
+      <h3>Dr. {{ doctor.nom }} {{ doctor.prenom }}</h3>
+      <p class="specialty">{{ doctor.specialite }}</p>
+      <p class="location">
+        <ion-icon name="location-outline"></ion-icon>
+        {{ doctor.zone_geographique }}
+      </p>
+      <div class="rating">
+        <ng-container *ngFor="let i of [1, 2, 3, 4, 5]">
+          <ion-icon [name]="i <= doctor.rating ? 'star' : (i - 0.5 <= doctor.rating ? 'star-half' : 'star-outline')" 
+                   class="filled"></ion-icon>
+        </ng-container>
+        <span>{{ doctor.rating }}</span>
       </div>
     </div>
-    <ion-button expand="block" class="reservation-btn">
-      Réserver
-    </ion-button>
-  </ion-card>
+  </div>
+  <ion-button expand="block" class="reservation-btn">
+    Réserver
+  </ion-button>
+</ion-card>
 </div>
 
 <!-- Empty State -->
 <div class="no-results" *ngIf="filteredDoctors && filteredDoctors.length === 0">
-  <ion-icon name="search-outline" class="empty-icon"></ion-icon>
-  <h3>Aucun médecin trouvé</h3>
-  <p>Essayez d'autres critères de recherche</p>
-  <ion-button (click)="resetSearch()" fill="outline">
-    Réinitialiser la recherche
-  </ion-button>
+<ion-icon name="search-outline" class="empty-icon"></ion-icon>
+<h3>Aucun médecin trouvé</h3>
+<p>Essayez d'autres critères de recherche</p>
+<ion-button (click)="resetSearch()" fill="outline">
+  Réinitialiser la recherche
+</ion-button>
 </div>
 
 <!-- Loading State -->
 <div class="loading-container" *ngIf="!filteredDoctors">
-  <ion-spinner name="crescent"></ion-spinner>
-  <p>Chargement des médecins...</p>
+<ion-spinner name="crescent"></ion-spinner>
+<p>Chargement des médecins...</p>
 </div>
 
-    <!-- About Us Section -->
-    <div class="aboutUs mb-16 mt-10 bg-gradient-to-r from-[#06668C] to-[#228fb9] px-8 py-10 rounded-3xl shadow-xl transform hover:scale-105 transition-transform duration-500 relative overflow-hidden">
-      <div class="absolute inset-0 bg-[url('/assets/wave.svg')] bg-cover bg-center opacity-20"></div>
-      <h2 class="text-3xl mb-8 font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#d6f2ff] drop-shadow-xl tracking-wide uppercase text-center">
-        Qui Sommes-Nous ?
-      </h2>
-      <div class="max-w-2xl mx-auto text-center bg-white/20 backdrop-blur-sm rounded-xl p-5 shadow-lg">
-        <p class="text-white text-lg leading-relaxed">
-          Clinique Santeo, basée à Tunis, est une clinique de référence offrant des services médicaux complets. Nos professionnels expérimentés vous assurent des soins de qualité dans un cadre moderne et chaleureux, pour vos consultations courantes ou traitements spécialisés.
-        </p>
-      </div>
-    </div>
-  </ion-content>
-
   
-  <ion-footer>
-    <ion-toolbar class="footer-toolbar">
-      <ion-buttons class="footer-buttons">
-        <ion-button (click)="goToPage('accueil')" class="footer-button">
-          <div class="button-content">
-            <ion-icon name="home-outline"></ion-icon>
-            <span>Accueil</span>
-          </div>
-        </ion-button>
+</ion-content>
 
-        <ion-button (click)="goToPage('doctorlist')" class="footer-button">
-          <div class="button-content">
-            <ion-icon name="calendar-outline"></ion-icon>
-            <span>Medecins</span>
-          </div>
-        </ion-button>
 
-        <ion-button (click)="goToPage('userprofile')" class="footer-button">
-          <div class="button-content">
-            <ion-icon name="person-outline"></ion-icon>
-            <span>Profil</span>
-          </div>
-        </ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-footer>
+<ion-footer>
+  <ion-toolbar class="footer-toolbar">
+    <ion-buttons class="footer-buttons">
+      <ion-button (click)="goToPage('accueil')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="home-outline"></ion-icon>
+          <span>Accueil</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('doctorlist')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Medecins</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>Profil</span>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
 </div>

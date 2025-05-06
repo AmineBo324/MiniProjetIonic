@@ -5,6 +5,8 @@ import base64
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
 from bson import ObjectId
+from dateutil import parser
+import pytz
 
 
 appointment = Blueprint("appointment", __name__)
@@ -199,3 +201,74 @@ def get_patient_appointments():
     
     except Exception as e:
         return jsonify({"error": f"Failed to retrieve appointments: {str(e)}"}), 500
+    
+@appointment.route("/appointment_stats", methods=["GET"])
+def get_appointment_stats():
+    try:
+        # Get parameters from query string
+        start_date = request.args.get("start_date")  # Format: YYYY-MM-DD
+        end_date = request.args.get("end_date")      # Format: YYYY-MM-DD
+        group_by = request.args.get("group_by")      # Options: day, week, month
+        doctor_email = request.args.get("doctor_email")  # Optional filter
+        
+        # Validate required parameters
+        if not start_date or not end_date:
+            return jsonify({"error": "start_date and end_date are required parameters"}), 400
+            
+        # Parse dates
+        try:
+            start_dt = parser.parse(start_date).replace(tzinfo=pytz.UTC)
+            end_dt = parser.parse(end_date).replace(tzinfo=pytz.UTC).replace(hour=23, minute=59, second=59)
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+
+        # Validate group_by
+        if group_by not in ['day', 'week', 'month']:
+            group_by = 'day'  # Default to day
+
+        # Build MongoDB query
+        query = {
+            "date": {
+                "$gte": start_dt.strftime("%Y-%m-%d"),
+                "$lte": end_dt.strftime("%Y-%m-%d")
+            }
+        }
+        if doctor_email:
+            query["doctor_email"] = doctor_email
+
+        # Aggregation pipeline
+        pipeline = [
+            {"$match": query},
+            {"$group": {
+                "_id": {
+                    "$dateTrunc": {
+                        "date": {"$dateFromString": {"dateString": "$date"}},
+                        "unit": group_by
+                    }
+                },
+                "count": {"$sum": 1}
+            }},
+            {"$sort": {"_id": 1}},
+            {"$project": {
+                "period": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$_id"
+                    }
+                },
+                "count": 1,
+                "_id": 0
+            }}
+        ]
+
+        # Execute aggregation
+        results = list(mongo.db.appointments.aggregate(pipeline))
+        total = sum(item['count'] for item in results)
+
+        return jsonify({
+            "stats": results,
+            "total": total
+        })
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to retrieve stats: {str(e)}"}), 500

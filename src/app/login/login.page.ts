@@ -16,6 +16,7 @@ import { ToastController } from '@ionic/angular';
 export class LoginPage {
   loginForm: FormGroup;
   isLoading = false;
+  isLoggedIn = false;
 
   constructor(
     private fb: FormBuilder,
@@ -42,18 +43,19 @@ export class LoginPage {
         email: this.loginForm.value.email,
         password: this.loginForm.value.password
       }).toPromise();
+      this.isLoggedIn = true;
 
       // Store the token and user data (you might want to use a service for this)
       localStorage.setItem('auth_token', response.access_token);
       localStorage.setItem('patient', JSON.stringify(response.patient));
-      console.log(response)
-
-      await this.presentToast('Login successful','success');
+      console.log('Utilisateur connecté :', response);
+      console.log(this.isLoggedIn)
+      await this.presentToast('Connexion réussie','success');
       this.router.navigate(['/accueil']);
       
     } catch (error: any) {
       console.error('Login error:', error);
-      const errorMessage = error.error?.error || 'Login failed. Please try again.';
+      const errorMessage = error.error?.error || 'Connexion échouée.';
       await this.presentToast(errorMessage,'danger');
     } finally {
       this.isLoading = false;

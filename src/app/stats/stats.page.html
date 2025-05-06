@@ -1,0 +1,147 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Statistiques <br>des Rendez-vous</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Filter Form -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Filtrer les Statistiques</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <form (ngSubmit)="fetchStats()">
+        <ion-item>
+          <ion-label position="floating">Date de début (YYYY-MM-DD)</ion-label>
+          <ion-input
+            [(ngModel)]="startDate"
+            name="startDate"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            pattern="\d{4}-\d{2}-\d{2}"
+            (ionChange)="fetchStats()"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Date de fin (YYYY-MM-DD)</ion-label>
+          <ion-input
+            [(ngModel)]="endDate"
+            name="endDate"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            pattern="\d{4}-\d{2}-\d{2}"
+            (ionChange)="fetchStats()"
+          ></ion-input>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Regrouper par</ion-label>
+          <ion-select [(ngModel)]="groupBy" name="groupBy" (ionChange)="fetchStats()">
+            <ion-select-option value="day">Jour</ion-select-option>
+            <ion-select-option value="week">Semaine</ion-select-option>
+            <ion-select-option value="month">Mois</ion-select-option>
+          </ion-select>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Médecin</ion-label>
+          <ion-select [(ngModel)]="doctorEmail" name="doctorEmail" (ionChange)="fetchDoctors()">
+            <ion-select-option value="">Tous les médecins</ion-select-option>
+            <ion-select-option *ngFor="let doctor of doctors" [value]="doctor.email">
+              {{ doctor.nom }} {{doctor.prenom}}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Email du médecin (optionnel)</ion-label>
+          <ion-input 
+            [(ngModel)]="doctorEmail" 
+            name="doctorEmail" 
+            type="email"
+            (ionChange)="fetchStats()"
+          ></ion-input>
+        </ion-item>
+        
+        <ion-button expand="block" type="submit" class="ion-margin-top">
+          Afficher les Statistiques
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Chart Display -->
+  <ion-card *ngIf="chartData && totalAppointments > 0">
+    <ion-card-header>
+      <ion-card-title>Nombre de Rendez-vous par {{ groupByLabel }}</ion-card-title>
+      <ion-card-subtitle>Total: {{ totalAppointments }} rendez-vous</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="chart-container">
+        <canvas #chartCanvas></canvas>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Loading State -->
+  <ion-card *ngIf="loading">
+    <ion-card-content class="ion-text-center">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Chargement des statistiques...</p>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Error State -->
+  <ion-card *ngIf="error" color="danger">
+    <ion-card-header>
+      <ion-card-title>Erreur</ion-card-title>
+    </ion-card-header>
+    <ion-card-content class="ion-text-center">
+      <ion-icon name="alert-circle-outline" size="large"></ion-icon>
+      <p>{{ error }}</p>
+      <ion-button fill="outline" (click)="resetForm()">Réessayer</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Empty State -->
+  <ion-card *ngIf="chartData && totalAppointments === 0">
+    <ion-card-content class="ion-text-center">
+      <ion-icon name="search-outline" size="large"></ion-icon>
+      <h3>Aucun rendez-vous trouvé</h3>
+      <p>Essayez une autre période ou d'autres critères</p>
+      <ion-button fill="outline" (click)="resetForm()">Réinitialiser</ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar class="footer-toolbar">
+    <ion-buttons class="footer-buttons">
+      <ion-button (click)="goToPage('accueil')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="home-outline"></ion-icon>
+          <span>Accueil</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('doctorlist')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Medecins</span>
+        </div>
+      </ion-button>
+
+      <ion-button (click)="goToPage('userprofile')" class="footer-button">
+        <div class="button-content">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>Profil</span>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

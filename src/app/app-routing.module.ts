@@ -8,7 +8,7 @@ import { AppointmentPage } from './appointment/appointment.page';
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'accueil',
     pathMatch: 'full'
   },
 
@@ -36,7 +36,11 @@ const routes: Routes = [
   {
     path: 'userprofile',
     loadChildren: () => import('./userprofile/userprofile.module').then( m => m.UserprofilePageModule)
+  },  {
+    path: 'stats',
+    loadChildren: () => import('./stats/stats.module').then( m => m.StatsPageModule)
   }
+
 
 
 
