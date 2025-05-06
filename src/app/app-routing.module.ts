@@ -39,7 +39,19 @@ const routes: Routes = [
     loadChildren: () => import('./userprofile/userprofile.module').then( m => m.UserprofilePageModule)
   }
 ,
-{ path: 'profile-medecin', component: ProfileMedecinPage },
+{ path: 'profile-medecin', component: ProfileMedecinPage },  {
+    path: 'appointment-request',
+    loadChildren: () => import('./appointment-request/appointment-request.module').then( m => m.AppointmentRequestPageModule)
+  },
+  {
+    path: 'future-appointments',
+    loadChildren: () => import('./future-appointments/future-appointments.module').then( m => m.FutureAppointmentsPageModule)
+  },
+  {
+    path: 'consultations-history',
+    loadChildren: () => import('./consultations-history/consultations-history.module').then( m => m.ConsultationsHistoryPageModule)
+  },
+
 
 
 

@@ -1,30 +1,28 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth.service';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, HttpClientModule]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule, FormsModule]
 })
 export class LoginPage {
   loginForm: FormGroup;
   isLoading = false;
+  userType: string = 'doctor'; // Default to doctor
 
   constructor(
     private fb: FormBuilder,
-
     private authService: AuthService,
-
-    private http: HttpClient,
-
     private router: Router,
     private toastController: ToastController
   ) {
@@ -34,55 +32,38 @@ export class LoginPage {
     });
   }
 
-
-  async login() {                                                                            
+  async login() {
     if (this.loginForm.invalid) {
       await this.presentToast('Veuillez remplir tous les champs correctement', 'danger');
-
-
+      return;
+    }
 
     this.isLoading = true;
 
-
     try {
-      const result = await this.authService.login({
-        email: this.loginForm.value.email,
-        password: this.loginForm.value.password
-      });  
+      const response = await firstValueFrom(
+        this.authService.login(
+          this.loginForm.value.email,
+          this.loginForm.value.password,
+          this.userType
+        )
+      );
 
-      if (result.success) {
-        await this.presentToast('Connexion réussie', 'success');
-        if (result.userType === 'doctor') {
-          this.router.navigate(['/profile-medecin']);
-        } else if (result.userType === 'patient') {
-          this.router.navigate(['/userprofile']);
-        }
+      localStorage.setItem('auth_token', response.access_token);
+      localStorage.setItem('refresh_token', response.refresh_token || '');
+      this.authService.setUserType(this.userType);
+
+      await this.presentToast('Connexion réussie', 'success');
+
+      if (this.userType === 'doctor') {
+        this.router.navigate(['/profile-medecin']);
       } else {
-        await this.presentToast('Échec de la connexion. Vérifiez vos identifiants.', 'danger');
+        this.router.navigate(['/userprofile']);
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      const errorMessage = error.error?.error || 'Échec de la connexion. Veuillez réessayer.';
+      const errorMessage = error.error?.error || 'Échec de la connexion. Vérifiez vos identifiants.';
       await this.presentToast(errorMessage, 'danger');
-
-    try {
-      const response: any = await this.http.post('http://localhost:5000/patient/login', {
-        email: this.loginForm.value.email,
-        password: this.loginForm.value.password
-      }).toPromise();
-
-      // Store the token and user data (you might want to use a service for this)
-      localStorage.setItem('auth_token', response.access_token);
-      localStorage.setItem('patient', JSON.stringify(response.patient));
-      console.log(response)
-
-      await this.presentToast('Login successful','success');
-      this.router.navigate(['/accueil']);
-      
-    } catch (error: any) {
-      console.error('Login error:', error);
-      const errorMessage = error.error?.error || 'Login failed. Please try again.';
-      await this.presentToast(errorMessage,'danger');
     } finally {
       this.isLoading = false;
     }
@@ -91,9 +72,7 @@ export class LoginPage {
   async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
-
-      duration:500,
-
+      duration: 2000,
       color,
       position: 'top'
     });
@@ -103,4 +82,4 @@ export class LoginPage {
   goToPage(page: string) {
     this.router.navigateByUrl('/' + page);
   }
-}}}
+}

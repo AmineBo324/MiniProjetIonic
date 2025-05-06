@@ -96,7 +96,6 @@ export class AppointmentPage implements OnInit {
       }
     );
   }
-
   generateWeekDays() {
     const startOfWeek = new Date(this.currentWeekStart);
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Start from Sunday

@@ -7,68 +7,28 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 
-interface Doctor {
-  _id: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  specialite: string;
-  zone_geographique: string;
-  rating: number;
-  availability: { date: string; start: string; end: string }[];
-  image: string;
-  userType: string;
-}
-
-interface Appointment {
-  _id: string;
-  patient_name: string;
-  patient_email: string;
-  doctor_email: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  complaint: string;
-  document_paths: string[];
-  created_at: string;
-  status: string;
-}
-
-interface Document {
-  _id: string;
-  doctor_email: string;
-  annotations: string[];
-  name: string;
-  patient_name: string;
-}
-
-interface Consultation {
-  _id: string;
-  appointmentId: string;
-  diagnosis: string;
-  prescription: string;
-  documents: string[];
-}
-
 @Component({
-  selector: 'profile-medecin-app',
+  selector: 'app-profile-medecin',
   templateUrl: './profile-medecin.page.html',
   styleUrls: ['./profile-medecin.page.scss'],
   standalone: true,
   imports: [FormsModule, CommonModule, IonicModule]
 })
 export class ProfileMedecinPage implements OnInit {
-  doctor: Doctor | null = null;
-  originalData: Doctor | null = null;
+  doctor: any = null;
+  originalData: any = null;
   editMode = false;
   isLoading = true;
   defaultImage = '/assets/images/default-doctor.png';
   placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-  appointments: Appointment[] = [];
-  documents: Document[] = [];
-  consultations: Consultation[] = [];
+  appointments: any[] = [];
+  pendingAppointments: any[] = [];
+  acceptedAppointments: any[] = [];
+  documents: any[] = [];
+  consultations: any[] = [];
   selectedDate: string = new Date().toISOString().split('T')[0];
-  private validImages: Set<string> = new Set(); // Cache for validated image paths
+  currentView: string = 'profile'; // profile, consultations, requests, upcoming
+  private validImages: Set<string> = new Set();
 
   constructor(
     private authService: AuthService,
@@ -97,61 +57,51 @@ export class ProfileMedecinPage implements OnInit {
       message: 'Chargement du profil...',
     });
     await loading.present();
-
+  
     try {
-      const doctorData = localStorage.getItem('doctor');
-      if (doctorData) {
-        this.doctor = JSON.parse(doctorData);
-        this.originalData = this.doctor ? { ...this.doctor } : null;
-        await this.validateImage(this.doctor?.image);
-        this.isLoading = false;
-        await loading.dismiss();
-        return;
-      }
-
       const token = localStorage.getItem('auth_token');
       if (!token) {
         throw new Error('Aucun jeton d’authentification disponible');
       }
-
+  
       const headers = new HttpHeaders({
         Authorization: `Bearer ${token}`,
       });
-
-      const response = await this.http
-        .get<Doctor>('http://localhost:5000/medecin/doctor-details', { headers })
+  
+      const response: any = await this.http
+        .get('http://localhost:5000/profile/', { headers }) // Corrected endpoint
         .toPromise();
-
-      if (!response || response.userType !== 'doctor') {
+  
+      if (!response || !response.doctor) {
         throw new Error('Profil médecin non trouvé');
       }
-
-      this.doctor = response;
-      this.originalData = { ...response };
+  
+      this.doctor = response.doctor; // Adjust to match backend response structure
+      this.originalData = { ...response.doctor };
       await this.validateImage(this.doctor.image);
-      localStorage.setItem('doctor', JSON.stringify(response));
+      localStorage.setItem('doctor', JSON.stringify(this.doctor));
     } catch (error: any) {
       console.error('Erreur chargement profil:', error);
-      await this.presentToast('Impossible de charger le profil', 'danger');
+      await this.presentToast(`Impossible de charger le profil: ${error.message || 'Erreur serveur'}`, 'danger');
+      this.authService.logout();
       this.router.navigate(['/login']);
     } finally {
       this.isLoading = false;
       await loading.dismiss();
     }
   }
-
   async validateImage(image: string | undefined) {
     if (!image || image === '' || this.validImages.has(image)) {
       return;
     }
-    const imageUrl = `/assets/profile/${image}`;
+    const imageUrl = `/assets/images/${image}`;
     try {
       await this.http.head(imageUrl).toPromise();
       this.validImages.add(image);
     } catch (error) {
       console.warn(`Image not found: ${imageUrl}`);
       if (this.doctor && this.doctor.image === image) {
-        this.doctor.image = ''; // Fallback to defaultImage
+        this.doctor.image = '';
       }
     }
   }
@@ -163,13 +113,23 @@ export class ProfileMedecinPage implements OnInit {
         Authorization: `Bearer ${token}`,
       });
 
-      const response = await this.http
-        .get<{ appointments: Appointment[] }>('http://localhost:5000/profile/appointments', { headers })
+      // Load pending appointments
+      const pendingResponse: any = await this.http
+        .get('http://localhost:5000/profile/appointments?status=pending', { headers })
         .toPromise();
+      this.pendingAppointments = pendingResponse?.appointments || [];
 
-      this.appointments = (response?.appointments || []).filter(appt => 
-        appt.date === this.selectedDate
-      );
+      // Load accepted appointments
+      const acceptedResponse: any = await this.http
+        .get('http://localhost:5000/profile/appointments?status=accepted', { headers })
+        .toPromise();
+      this.acceptedAppointments = acceptedResponse?.appointments || [];
+
+      // All appointments for profile view
+      const allResponse: any = await this.http
+        .get('http://localhost:5000/profile/appointments', { headers })
+        .toPromise();
+      this.appointments = allResponse?.appointments || [];
     } catch (error: any) {
       console.error('Erreur chargement rendez-vous:', error);
       await this.presentToast('Impossible de charger les rendez-vous', 'danger');
@@ -183,8 +143,8 @@ export class ProfileMedecinPage implements OnInit {
         Authorization: `Bearer ${token}`,
       });
 
-      const response = await this.http
-        .get<{ documents: Document[] }>('http://localhost:5000/profile/documents', { headers })
+      const response: any = await this.http
+        .get('http://localhost:5000/profile/documents', { headers })
         .toPromise();
 
       this.documents = response?.documents || [];
@@ -201,8 +161,8 @@ export class ProfileMedecinPage implements OnInit {
         Authorization: `Bearer ${token}`,
       });
 
-      const response = await this.http
-        .get<{ consultations: Consultation[] }>('http://localhost:5000/profile/consultations', { headers })
+      const response: any = await this.http
+        .get('http://localhost:5000/profile/consultations', { headers })
         .toPromise();
 
       this.consultations = response?.consultations || [];
@@ -214,7 +174,7 @@ export class ProfileMedecinPage implements OnInit {
 
   getProfileImage(image: string | undefined): string {
     if (image && image !== '' && this.validImages.has(image)) {
-      return `/assets/profile/${image}`;
+      return `/assets/images/${image}`;
     }
     return this.defaultImage;
   }
@@ -226,14 +186,8 @@ export class ProfileMedecinPage implements OnInit {
     }
   }
 
-  onDateChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.selectedDate = input.value;
-    this.loadAppointments();
-  }
-
-  trackById(index: number, item: { _id: string }): string {
-    return item._id;
+  switchView(view: string) {
+    this.currentView = view;
   }
 
   toggleEdit() {
@@ -257,18 +211,16 @@ export class ProfileMedecinPage implements OnInit {
         Authorization: `Bearer ${token}`,
       });
 
-      const response = await this.http
-        .put(
-          'http://localhost:5000/profile/update',
-          {
-            nom: this.doctor.nom,
-            prenom: this.doctor.prenom,
-            specialite: this.doctor.specialite,
-            zone_geographique: this.doctor.zone_geographique,
-            image: this.doctor.image,
-          },
-          { headers }
-        )
+      const updateData: any = {
+        nom: this.doctor.nom,
+        prenom: this.doctor.prenom,
+        specialite: this.doctor.specialite,
+        zone_geographique: this.doctor.zone_geographique,
+        image: this.doctor.image
+      };
+
+      await this.http
+        .put('http://localhost:5000/profile/update', updateData, { headers })
         .toPromise();
 
       this.editMode = false;
@@ -295,7 +247,7 @@ export class ProfileMedecinPage implements OnInit {
       await this.http
         .put(
           'http://localhost:5000/profile/availability',
-          { availability: this.doctor.availability },
+          { availability: this.doctor.availability || [] },
           { headers }
         )
         .toPromise();
@@ -307,13 +259,13 @@ export class ProfileMedecinPage implements OnInit {
     }
   }
 
-  addAvailability() {
+  addAvailability(date: string, start: string, end: string) {
     if (!this.doctor) return;
     this.doctor.availability = this.doctor.availability || [];
     this.doctor.availability.push({
-      date: new Date().toISOString().split('T')[0],
-      start: '09:00',
-      end: '17:00',
+      date,
+      start,
+      end
     });
   }
 
@@ -376,6 +328,30 @@ export class ProfileMedecinPage implements OnInit {
     }
   }
 
+  async uploadDocument(consultationId: string, patientEmail: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('patient_email', patientEmail);
+    formData.append('consultation_id', consultationId);
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+      });
+
+      const response: any = await this.http
+        .post('http://localhost:5000/profile/documents/upload', formData, { headers })
+        .toPromise();
+
+      await this.presentToast('Document téléversé avec succès', 'success');
+      await this.loadDocuments();
+      await this.loadConsultations();
+    } catch (error: any) {
+      await this.presentToast(`Échec du téléversement: ${error.message || 'Erreur serveur'}`, 'danger');
+    }
+  }
+
   async openAnnotationPrompt(documentId: string) {
     const alert = await this.alertCtrl.create({
       header: 'Ajouter une annotation',
@@ -426,7 +402,7 @@ export class ProfileMedecinPage implements OnInit {
     }
   }
 
-  async saveConsultation(appointmentId: string, diagnosis: string, prescription: string, documents: string[]) {
+  async saveConsultation(appointmentId: string, patientEmail: string, diagnosis: string, prescription: string, documents: string[]) {
     try {
       const token = localStorage.getItem('auth_token');
       const headers = new HttpHeaders({
@@ -436,7 +412,7 @@ export class ProfileMedecinPage implements OnInit {
       await this.http
         .post(
           'http://localhost:5000/profile/consultations',
-          { appointmentId, diagnosis, prescription, documents },
+          { appointmentId, patient_email: patientEmail, diagnosis, prescription, documents },
           { headers }
         )
         .toPromise();
@@ -465,5 +441,12 @@ export class ProfileMedecinPage implements OnInit {
       position: 'bottom',
     });
     await toast.present();
+  }
+
+  logout() {
+    this.authService.logout();
+  }
+  goToPage(page: string) {
+    this.router.navigateByUrl('/' + page);
   }
 }

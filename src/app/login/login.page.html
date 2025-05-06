@@ -35,6 +35,13 @@
             autocomplete="current-password">
           </ion-input>
         </ion-item>
+        <ion-item>
+          <ion-label>Type d'utilisateur</ion-label>
+          <ion-select [(ngModel)]="userType" [ngModelOptions]="{standalone: true}">
+            <ion-select-option value="doctor">Médecin</ion-select-option>
+            <ion-select-option value="patient">Patient</ion-select-option>
+          </ion-select>
+        </ion-item>
       </div>
 
       <div class="sign-btn-wrap">

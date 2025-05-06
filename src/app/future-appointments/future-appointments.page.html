@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Rendez-vous à venir</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-spinner *ngIf="isLoading"></ion-spinner>
+  <ion-list *ngIf="!isLoading && futureAppointments.length > 0">
+    <ion-item *ngFor="let appointment of futureAppointments">
+      <ion-label>
+        <h2>{{ appointment.patient_name }}</h2>
+        <p>{{ appointment.date }} {{ appointment.start_time }} - {{ appointment.end_time }}</p>
+        <p>Plainte: {{ appointment.complaint }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+  <ion-item *ngIf="!isLoading && futureAppointments.length === 0">
+    <ion-label>Aucun rendez-vous à venir</ion-label>
+  </ion-item>
+</ion-content>

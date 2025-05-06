@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Demandes de rendez-vous</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-spinner *ngIf="isLoading"></ion-spinner>
+  <ion-list *ngIf="!isLoading && pendingAppointments.length > 0">
+    <ion-item *ngFor="let appointment of pendingAppointments">
+      <ion-label>
+        <h2>{{ appointment.patient_name }}</h2>
+        <p>{{ appointment.date }} {{ appointment.start_time }} - {{ appointment.end_time }}</p>
+        <p>Plainte: {{ appointment.complaint }}</p>
+      </ion-label>
+      <ion-button slot="end" color="success" (click)="acceptAppointment(appointment._id)">Accepter</ion-button>
+      <ion-button slot="end" color="danger" (click)="rejectAppointment(appointment._id)">Rejeter</ion-button>
+    </ion-item>
+  </ion-list>
+  <ion-item *ngIf="!isLoading && pendingAppointments.length === 0">
+    <ion-label>Aucune demande de rendez-vous</ion-label>
+  </ion-item>
+</ion-content>

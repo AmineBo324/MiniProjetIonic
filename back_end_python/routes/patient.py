@@ -32,30 +32,30 @@ def register():
 @patient.route("/login", methods=["POST"])
 def login():
     data = request.json
-    print(f"Received request to /patient/login with data: {data}")
     
     if "email" not in data or "password" not in data:
         return jsonify({"error": "Email et mot de passe requis"}), 400
-
+    
     patient = mongo.db.patients.find_one({"email": data["email"]})
-
+    
     if not patient:
         return jsonify({"error": "Patient non trouvé"}), 404
     
     if not check_password_hash(patient["password"], data["password"]):
         return jsonify({"error": "Mot de passe incorrect"}), 401
     
+    # Création du token JWT
     access_token = create_access_token(identity=str(patient["_id"]))
     
-    patient["_id"] = str(patient["_id"])
-    patient.pop("password", None)
-    patient["userType"] = "patient"
-
+    # Convertir ObjectId en string et supprimer les champs sensibles
+    patient_data = patient.copy()
+    patient_data["_id"] = str(patient_data["_id"])
+    patient_data.pop("password", None)  # Supprimer le mot de passe
+    
     return jsonify({
         "access_token": access_token,
-        "patient": patient
+        "patient": patient_data
     }), 200
-
 
 # Récupérer les détails d'un patient
 @patient.route("/patient-details", methods=["GET"])

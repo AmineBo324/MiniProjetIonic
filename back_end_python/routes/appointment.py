@@ -1,306 +1,106 @@
-from flask import Blueprint, request, jsonify
-from models import Appointment
-from config import mongo
-import os
-from flask import request, jsonify
-from werkzeug.utils import secure_filename
-import base64
-
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson import ObjectId
+from config import mongo
+import datetime
 
+appointment = Blueprint('appointment', __name__)
 
-appointment = Blueprint("appointment", __name__)
+@appointment.route("/patient_appointments", methods=["GET"])
+@jwt_required()
+def get_patient_appointments():
+    patient_email = request.args.get("patient_email")
+    if not patient_email:
+        return jsonify({"error": "Patient email required"}), 400
 
-# Define uploads folder
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'}
-
-# Helper function to check if file extension is allowed
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.split('.')[-1].lower() in ALLOWED_EXTENSIONS
-
-# Define uploads folder
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'}
-
-# Helper function to check if file extension is allowed
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.split('.')[-1].lower() in ALLOWED_EXTENSIONS
-
-@appointment.route("/create_appointment", methods=["POST"])
-def create_appointment():
-    # Check if the request contains form data with files
-    if 'documents' not in request.files:
-        # Handle JSON data for appointment without files
-        data = request.json
-        documents_paths = []
-    else:
-        # Handle multipart form data with files
-        data = request.form.to_dict()
-        documents = request.files.getlist('documents')
-        documents_paths = []
-        
-        # Create uploads directory if it doesn't exist
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-        
-        # Save each uploaded file
-        for file in documents:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                # Create patient-specific folder using email as identifier
-                patient_folder = os.path.join(UPLOAD_FOLDER, data.get('patient_email', 'unknown'))
-                if not os.path.exists(patient_folder):
-                    os.makedirs(patient_folder)
-                
-                # Create a unique filename with timestamp
-                from datetime import datetime
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
-                filepath = os.path.join(patient_folder, timestamp + filename)
-                file.save(filepath)
-                documents_paths.append(filepath)
-    
-    required_fields = ["patient_name", "patient_email", "doctor_email", "date", "start_time", "end_time", "complaint"]
-    
-    # Initialize variables
-    data = {}
-    documents_base64 = []
-    
-    # Check if request is multipart/form-data (with files) or JSON
-    if request.content_type.startswith('multipart/form-data'):
-        data = request.form.to_dict()
-        files = request.files.getlist('documents')
-        
-        # Process each file
-        for file in files:
-            if file and allowed_file(file.filename):
-                file_content = file.read()
-                documents_base64.append({
-                    "filename": secure_filename(file.filename),
-                    "content": base64.b64encode(file_content).decode('utf-8'),
-                    "mimetype": file.mimetype,
-                    "size": len(file_content)
-                })
-    else:
-        # Handle JSON request (could contain base64 files)
-        data = request.get_json()
-        if 'documents_base64' in data:
-            for doc in data['documents_base64']:
-                if isinstance(doc, dict) and 'content' in doc:
-                    documents_base64.append({
-                        "filename": doc.get('filename', 'document'),
-                        "content": doc['content'],  # Assume already base64
-                        "mimetype": doc.get('mimetype', 'application/octet-stream'),
-                        "size": len(base64.b64decode(doc['content']))
-                    })
-    
-    # Validate required fields
-    required_fields = ["patient_name", "patient_email", "doctor_email", 
-                      "date", "start_time", "end_time", "complaint"]
-    
-    if not all(field in data for field in required_fields):
-        return jsonify({"message": "Missing required fields"}), 400
-    
-        return jsonify({"message": "Missing fields"}), 400
-    
-    try:
-        # Check for overlapping appointments
-        overlapping_appointment = Appointment.find_overlapping_appointment(
-            data["doctor_email"],
-            data["date"],
-            data["doctor_email"],
-            data["date"],
-            data["start_time"],
-            data["end_time"]
-        )
-        
-        
-        if overlapping_appointment:
-            return jsonify({"message": "Selected time slot is unavailable"}), 400
-        
-        # Create and save the new appointment
-        new_appointment = Appointment.create_appointment(
-            data["patient_name"],
-            data["patient_email"],
-            data["doctor_email"],
-            data["date"],
-            data["start_time"],
-            data["end_time"],
-            data["complaint"],
-            documents_paths  # Pass the list of document paths
-        )
-        
-        return jsonify({
-            "message": "Appointment created successfully", 
-            "appointment": new_appointment,
-            "documents": documents_paths
-        }), 201
-        
-        
-        # Create and save the new appointment with base64 files
-        new_appointment = {
-            "patient_name": data["patient_name"],
-            "patient_email": data["patient_email"],
-            "doctor_email": data["doctor_email"],
-            "date": data["date"],
-            "start_time": data["start_time"],
-            "end_time": data["end_time"],
-            "complaint": data["complaint"],
-            "documents": documents_base64
+    appointments = mongo.db.appointments.find({"patient_email": patient_email})
+    appointments_list = [
+        {
+            "_id": str(appointment["_id"]),
+            "doctor_email": appointment["doctor_email"],
+            "patient_email": appointment["patient_email"],
+            "patient_name": appointment.get("patient_name", ""),
+            "date": appointment["date"],
+            "start_time": appointment.get("start_time", ""),
+            "end_time": appointment.get("end_time", ""),
+            "complaint": appointment.get("complaint", ""),
+            "documents": appointment.get("documents", []),
+            "status": appointment.get("status", "pending"),
+            "doctor_details": mongo.db.medecins.find_one(
+                {"email": appointment["doctor_email"]},
+                {"_id": 0, "nom": 1, "prenom": 1, "email": 1}
+            ) or {"nom": "Unknown", "prenom": "", "email": appointment["doctor_email"]}
         }
-        
-        # Insert into MongoDB
-        result = mongo.db.appointments.insert_one(new_appointment)
-        new_appointment['_id'] = str(result.inserted_id)
-        
-        # Remove file contents from response to reduce payload size
-        response_docs = [{"filename": doc['filename'], "size": doc['size']} 
-                        for doc in documents_base64]
-        
-        return jsonify({
-            "message": "Appointment created successfully",
-            "appointment": new_appointment,
-            "documents": response_docs
-        }), 201
-        
-    except Exception as e:
-        return jsonify({"message": "Error creating appointment", "error": str(e)}), 500
-    
+        for appointment in appointments
+    ]
+    return jsonify(appointments_list), 200
 
-@appointment.route("/get_document/<appointment_id>/<int:doc_index>", methods=["GET"])
-def get_document(appointment_id, doc_index):
-    try:
-        appointment = mongo.db.appointments.find_one(
-            {"_id": ObjectId(appointment_id)},
-            {"documents": {"$slice": [doc_index, 1]}}
-        )
-        
-        if not appointment or not appointment.get('documents'):
-            return jsonify({"error": "Document not found"}), 404
-            
-        document = appointment['documents'][0]
-        return jsonify({
-            "filename": document['filename'],
-            "mimetype": document['mimetype'],
-            "content": document['content'],  # Base64 string
-            "size": document['size']
-        })
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@appointment.route('/create', methods=['POST'], endpoint='create_appointment')
+@jwt_required()
+def create_appointment():
+    current_user_id = get_jwt_identity()
+    patient = mongo.db.patients.find_one({"_id": ObjectId(current_user_id)})
+    if not patient:
+        return jsonify({"message": "Patient non trouvé"}), 404
 
-
-@appointment.route("/retrieve_appointment", methods=["GET"])
-def get_appointments_by_doctor_and_time():
-    # Get parameters from request.args (query string)
-    doctor_email = request.args.get("doctor_email")
-    date = request.args.get("date")
-    start_time = request.args.get("start_time")
-    end_time = request.args.get("end_time")
-    
-    # Validate required parameters
-    if not doctor_email or not date:
-        return jsonify({"error": "doctor_email and date are required parameters"}), 400
-    
-    # Query the database
-    appointments = mongo.db.appointments
-    query = {
-        "doctor_email": doctor_email,
-        "date": date
+    data = request.get_json()
+    appointment_data = {
+        "doctor_email": data['doctor_email'],
+        "patient_email": patient['email'],
+        "patient_name": f"{patient['prenom']} {patient['nom']}",
+        "date": data['date'],
+        "start_time": data['start_time'],
+        "end_time": data['end_time'],
+        "complaint": data['complaint'],
+        "document_paths": data.get('document_paths', []),
+        "status": "pending",
+        "created_at": datetime.datetime.utcnow()
     }
-    
-    # Add time range conditions if provided
-    if start_time and end_time:
-        query["$or"] = [
-            {"start_time": {"$gte": start_time, "$lt": end_time}},
-            {"end_time": {"$gt": start_time, "$lte": end_time}},
-            {"start_time": {"$lte": start_time}, "end_time": {"$gte": end_time}}
+    # Validate no overlapping appointments
+    overlap = mongo.db.appointments.find_one({
+        "doctor_email": data['doctor_email'],
+        "date": data['date'],
+        "$or": [
+            {
+                "start_time": {"$lt": data['end_time']},
+                "end_time": {"$gt": data['start_time']}
+            }
         ]
-    elif start_time:
-        query["start_time"] = start_time
-    elif end_time:
-        query["end_time"] = end_time
-    
-    # Find and format results
-    results = []
-    for appointment in appointments.find(query):
-        appointment["_id"] = str(appointment["_id"])
-        results.append(appointment)
-    
-    return jsonify(results)
+    })
+    if overlap:
+        return jsonify({"message": "Conflit avec un autre rendez-vous"}), 400
 
+    mongo.db.appointments.insert_one(appointment_data)
+    return jsonify({"message": "Rendez-vous créé"}), 201
 
-@appointment.route("/patient_appointments", methods=["GET"])
-def get_patient_appointments():
-    # Get patient email from request.args (query string)
-    patient_email = request.args.get("patient_email")
-    
-    # Validate required parameter
-    if not patient_email:
-        return jsonify({"error": "patient_email is a required parameter"}), 400
-    
-    try:
-        # Query the database
-        appointments = mongo.db.appointments
-        query = {"patient_email": patient_email}
-        
-        # Find and format results
-        results = []
-        for appointment in appointments.find(query).sort("date", 1):  # Sort by date ascending
-            # Convert ObjectId to string for JSON serialization
-            appointment["_id"] = str(appointment["_id"])
-            
-            # Add doctor details if needed
-            try:
-                doctor = mongo.db.doctors.find_one({"email": appointment["doctor_email"]})
-                if doctor:
-                    doctor["_id"] = str(doctor["_id"])
-                    appointment["doctor_details"] = doctor
-            except Exception as e:
-                print(f"Error fetching doctor details: {str(e)}")
-            
-            results.append(appointment)
-        
-        return jsonify(results)
-    
-    except Exception as e:
-        return jsonify({"error": f"Failed to retrieve appointments: {str(e)}"}), 500
+@appointment.route('/doctor/appointments', methods=['GET'], endpoint='get_doctor_appointments')
+@jwt_required()
+def get_doctor_appointments():
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
 
+    status = request.args.get('status', 'all')  # Filter by status (pending, accepted, all)
+    query = {"doctor_email": doctor['email']}
+    if status != 'all':
+        query['status'] = status
 
-@appointment.route("/patient_appointments", methods=["GET"])
-def get_patient_appointments():
-    # Get patient email from request.args (query string)
-    patient_email = request.args.get("patient_email")
-    
-    # Validate required parameter
-    if not patient_email:
-        return jsonify({"error": "patient_email is a required parameter"}), 400
-    
-    try:
-        # Query the database
-        appointments = mongo.db.appointments
-        query = {"patient_email": patient_email}
-        
-        # Find and format results
-        results = []
-        for appointment in appointments.find(query).sort("date", 1):  # Sort by date ascending
-            # Convert ObjectId to string for JSON serialization
-            appointment["_id"] = str(appointment["_id"])
-            
-            # Add doctor details if needed
-            try:
-                doctor = mongo.db.doctors.find_one({"email": appointment["doctor_email"]})
-                if doctor:
-                    doctor["_id"] = str(doctor["_id"])
-                    appointment["doctor_details"] = doctor
-            except Exception as e:
-                print(f"Error fetching doctor details: {str(e)}")
-            
-            results.append(appointment)
-        
-        return jsonify(results)
-    
-    except Exception as e:
-        return jsonify({"error": f"Failed to retrieve appointments: {str(e)}"}), 500
+    appointments = mongo.db.appointments.find(query)
+    appointments_list = [
+        {
+            "_id": str(appointment['_id']),
+            "doctor_email": appointment['doctor_email'],
+            "patient_email": appointment['patient_email'],
+            "patient_name": appointment['patient_name'],
+            "date": appointment['date'],
+            "start_time": appointment['start_time'],
+            "end_time": appointment['end_time'],
+            "complaint": appointment['complaint'],
+            "document_paths": appointment.get('document_paths', []),
+            "created_at": appointment['created_at'].isoformat(),
+            "status": appointment['status']
+        }
+        for appointment in appointments
+    ]
+    return jsonify({"appointments": appointments_list}), 200

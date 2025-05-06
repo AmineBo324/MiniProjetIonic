@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { AuthService } from '../auth.service'; // Import AuthService
 
 @Component({
   selector: 'app-userprofile',
@@ -13,48 +14,58 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
   imports: [IonicModule, CommonModule, HttpClientModule]
 })
 export class UserprofilePage implements OnInit {
-  
   user: any = null;
   appointments: any[] = [];
   isLoading = false;
-  
+
   constructor(
     private http: HttpClient,
     private toastController: ToastController,
     private router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private authService: AuthService // Add AuthService
   ) {}
-  
+
   ngOnInit() {
-    this.loadProfileFromStorage();
+    this.loadProfile();
   }
-  
-  loadProfileFromStorage() {
+
+  async loadProfile() {
     this.isLoading = true;
-    
+
     try {
-      const patientData = localStorage.getItem('patient');
-      
-      if (!patientData) {
-        throw new Error('No patient data found');
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
-      
-      this.user = JSON.parse(patientData);
+
+      const headers = new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+      });
+
+      const response: any = await this.http
+        .get('http://localhost:5000/patient/patient-details', { headers })
+        .toPromise();
+
+      this.user = response;
       this.loadAppointments(this.user.email);
+    } catch (error: any) {
+      this.presentToast(`Error loading profile: ${error.message || 'Server error'}`, 'danger');
+      console.error('Error loading profile from API:', error);
+      this.authService.logout(); // Use AuthService to clear tokens and navigate
+    } finally {
       this.isLoading = false;
-      
-    } catch (error) {
-      this.isLoading = false;
-      this.presentToast('Error loading profile data', 'danger');
-      console.error('Error loading from localStorage:', error);
-      this.router.navigate(['/login']);
     }
   }
-  
+
   loadAppointments(patientEmail: string) {
-    const url = `http://localhost:5000/appointment/patient_appointments?patient_email=${encodeURIComponent(patientEmail)}`;
-    
-    this.http.get<any[]>(url).subscribe({
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+    const url = `http://localhost: Search for code5000/appointment/patient_appointments?patient_email=${encodeURIComponent(patientEmail)}`;
+
+    this.http.get<any[]>(url, { headers }).subscribe({
       next: (appointments) => {
         console.log('Appointments received:', appointments);
         this.appointments = appointments.map(appointment => ({
@@ -68,14 +79,17 @@ export class UserprofilePage implements OnInit {
       }
     });
   }
-  
+
   viewDocument(appointmentId: string, docIndex: number, filename: string) {
+    const token = localStorage.getItem('auth_token');
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
     const url = `http://localhost:5000/appointment/get_document/${appointmentId}/${docIndex}`;
-    
-    this.http.get<any>(url).subscribe({
+
+    this.http.get<any>(url, { headers }).subscribe({
       next: (doc) => {
         if (doc && doc.content) {
-          // Create and click a download link
           const linkSource = `data:${doc.mimetype};base64,${doc.content}`;
           const downloadLink = document.createElement('a');
           downloadLink.href = linkSource;
@@ -91,15 +105,15 @@ export class UserprofilePage implements OnInit {
       }
     });
   }
-  
+
   hasDocuments(appointment: any): boolean {
     return appointment.documents && appointment.documents.length > 0;
   }
-  
+
   getDocumentName(doc: any): string {
     return doc.filename || 'Document';
   }
-  
+
   async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
@@ -109,7 +123,7 @@ export class UserprofilePage implements OnInit {
     });
     await toast.present();
   }
-  
+
   goToPage(page: string) {
     this.router.navigateByUrl('/' + page);
   }

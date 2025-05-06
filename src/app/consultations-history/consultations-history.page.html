@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historique des consultations</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-spinner *ngIf="isLoading"></ion-spinner>
+  <ion-list *ngIf="!isLoading && consultations.length > 0">
+    <ion-item *ngFor="let consultation of consultations">
+      <ion-label>
+        <h2>{{ consultation.patient_name }}</h2>
+        <p>Date: {{ consultation.date }}</p>
+        <p>Diagnostic: {{ consultation.diagnosis }}</p>
+        <p>Prescription: {{ consultation.prescription }}</p>
+        <div *ngIf="consultation.document_ids && consultation.document_ids.length > 0">
+          <h3>Documents:</h3>
+          <ul>
+            <li *ngFor="let docId of consultation.document_ids">
+              {{ getDocumentName(docId) }}
+              <p *ngIf="getDocumentAnnotations(docId).length > 0">
+                Annotations: {{ getDocumentAnnotations(docId).join(', ') }}
+              </p>
+              <ion-button fill="clear" (click)="openAnnotationPrompt(docId)">Ajouter annotation</ion-button>
+            </li>
+          </ul>
+        </div>
+        <ion-button fill="clear" (click)="addDocumentToConsultation(consultation._id)">Ajouter document</ion-button>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+  <ion-item *ngIf="!isLoading && consultations.length === 0">
+    <ion-label>Aucune consultation</ion-label>
+  </ion-item>
+</ion-content>

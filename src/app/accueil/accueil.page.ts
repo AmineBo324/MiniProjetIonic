@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ToastController } from '@ionic/angular';
 
 interface Doctor {
   id: string;
@@ -55,14 +55,18 @@ export class AccueilPage implements OnInit {
   searchSpecialite: string = '';
   searchZone: string = '';
   showFilters: boolean = false;
+  isLoggedIn: boolean = false; 
+  patientData: any = null;
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private toastController: ToastController
   ) { }
 
   ngOnInit() {
     this.fetchDoctors();
+    this.checkUserLoginStatus();
   }
 
   changeAdImage() {
@@ -127,6 +131,56 @@ export class AccueilPage implements OnInit {
     this.searchSpecialite = '';
     this.searchZone = '';
     this.fetchDoctors();
+  }
+
+  checkUserLoginStatus() {
+    const token = localStorage.getItem('auth_token');
+    const patientData = localStorage.getItem('patient');
+    
+    if (token && patientData) {
+      try {
+        // Convertir les données JSON en objet
+        this.patientData = JSON.parse(patientData);
+        this.isLoggedIn = true;
+        console.log('Utilisateur connecté :', this.patientData);
+        console.log(this.isLoggedIn)
+      } catch (error) {
+        console.error('Erreur lors de la lecture des données patient :', error);
+        this.logout(); // En cas d'erreur, déconnexion par précaution
+      }
+    } else {
+      this.isLoggedIn = false;
+      this.patientData = null;
+    }
+    
+    return this.isLoggedIn;
+  }
+
+  logout() {
+    // Supprimer le token et les données patient du localStorage
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('patient');
+    
+    // Réinitialiser les variables
+    this.isLoggedIn = false;
+    this.patientData = null;
+    
+    // Afficher un message de confirmation
+    this.presentToast('Déconnexion réussie', 'success');
+    
+    // Rediriger vers la page d'accueil
+    this.router.navigate(['/login']);
+    console.log(this.isLoggedIn)
+  }
+
+  async presentToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration:500,
+      color,
+      position: 'top'
+    });
+    await toast.present();
   }
 
   goToPage(page: string) {

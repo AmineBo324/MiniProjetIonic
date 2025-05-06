@@ -1,177 +1,248 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from config import mongo
 from bson import ObjectId
+from config import mongo
+import datetime
+from werkzeug.utils import secure_filename
+import os
 
-profile = Blueprint("profile", __name__)
+profile = Blueprint('profile', __name__)
 
-@profile.route("/appointments", methods=["GET"])
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'}
+
+@profile.route('/', methods=['GET'])
+@jwt_required()
+def get_profile():
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
+
+    doctor_data = {
+        "_id": str(doctor['_id']),
+        "nom": doctor.get('nom', ''),
+        "prenom": doctor.get('prenom', ''),
+        "specialite": doctor.get('specialite', ''),
+        "zone_geographique": doctor.get('zone_geographique', ''),
+        "email": doctor.get('email', '')
+    }
+    return jsonify({"doctor": doctor_data}), 200
+
+@profile.route('/appointments', methods=['GET'])
 @jwt_required()
 def get_appointments():
-    user_id = get_jwt_identity()
-    
-    try:
-        object_id = ObjectId(user_id)
-    except:
-        return jsonify({"error": "ID utilisateur invalide"}), 400
-    
-    # Find appointments where the user is the doctor or patient
-    appointments = mongo.db.appointments.find({
-        "$or": [
-            {"doctor_id": object_id},
-            {"patient_id": object_id}
-        ]
-    })
-    
-    appointment_list = []
-    for appt in appointments:
-        appt["_id"] = str(appt["_id"])
-        appt["doctor_id"] = str(appt.get("doctor_id", ""))
-        appt["patient_id"] = str(appt.get("patient_id", ""))
-        appointment_list.append(appt)
-    
-    return jsonify({"appointments": appointment_list}), 200
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
 
-@profile.route("/documents", methods=["GET"])
+    status = request.args.get('status', 'all')
+    date = request.args.get('date')
+    query = {"doctor_email": doctor['email']}
+    if status != 'all':
+        query['status'] = status
+    if date:
+        query['date'] = date
+
+    appointments = mongo.db.appointments.find(query)
+    appointments_list = [
+        {
+            "_id": str(appointment['_id']),
+            "doctor_email": appointment['doctor_email'],
+            "patient_email": appointment['patient_email'],
+            "patient_name": appointment['patient_name'],
+            "date": appointment['date'],
+            "start_time": appointment['start_time'],
+            "end_time": appointment['end_time'],
+            "complaint": appointment['complaint'],
+            "document_paths": appointment.get('document_paths', []),
+            "created_at": appointment['created_at'].isoformat(),
+            "status": appointment['status']
+        }
+        for appointment in appointments
+    ]
+    return jsonify({"appointments": appointments_list}), 200
+
+@profile.route('/documents', methods=['GET'])
 @jwt_required()
 def get_documents():
-    user_id = get_jwt_identity()
-    
-    try:
-        object_id = ObjectId(user_id)
-    except:
-        return jsonify({"error": "ID utilisateur invalide"}), 400
-    
-    # Find documents associated with the user (doctor or patient)
-    documents = mongo.db.documents.find({
-        "$or": [
-            {"doctor_id": object_id},
-            {"patient_id": object_id}
-        ]
-    })
-    
-    document_list = []
-    for doc in documents:
-        doc["_id"] = str(doc["_id"])
-        doc["doctor_id"] = str(doc.get("doctor_id", ""))
-        doc["patient_id"] = str(doc.get("patient_id", ""))
-        document_list.append(doc)
-    
-    return jsonify({"documents": document_list}), 200
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
 
-@profile.route("/consultations", methods=["GET"])
+    documents = mongo.db.documents.find({"doctor_email": doctor['email']})
+    documents_list = [
+        {
+            "_id": str(doc['_id']),
+            "doctor_email": doc['doctor_email'],
+            "annotations": doc.get('annotations', []),
+            "name": doc['name'],
+            "patient_name": doc['patient_name']
+        }
+        for doc in documents
+    ]
+    return jsonify({"documents": documents_list}), 200
+
+@profile.route('/consultations', methods=['GET'])
 @jwt_required()
 def get_consultations():
-    user_id = get_jwt_identity()
-    
-    try:
-        object_id = ObjectId(user_id)
-    except:
-        return jsonify({"error": "ID utilisateur invalide"}), 400
-    
-    # Find consultations associated with the user (doctor or patient)
-    consultations = mongo.db.consultations.find({
-        "$or": [
-            {"doctor_id": object_id},
-            {"patient_id": object_id}
-        ]
-    })
-    
-    consultation_list = []
-    for consult in consultations:
-        consult["_id"] = str(consult["_id"])
-        consult["appointment_id"] = str(consult.get("appointment_id", ""))
-        consult["doctor_id"] = str(consult.get("doctor_id", ""))
-        consult["patient_id"] = str(consult.get("patient_id", ""))
-        consultation_list.append(consult)
-    
-    return jsonify({"consultations": consultation_list}), 200
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
 
-@profile.route("/appointments/<appointment_id>/accept", methods=["PUT"])
+    consultations = mongo.db.consultations.find({"doctor_email": doctor['email']})
+    consultations_list = [
+        {
+            "_id": str(consultation['_id']),
+            "appointmentId": consultation['appointmentId'],
+            "diagnosis": consultation['diagnosis'],
+            "prescription": consultation['prescription'],
+            "documents": consultation.get('documents', [])
+        }
+        for consultation in consultations
+    ]
+    return jsonify({"consultations": consultations_list}), 200
+
+@profile.route('/update', methods=['PUT'])
 @jwt_required()
-def accept_appointment(appointment_id):
-    user_id = get_jwt_identity()
-    
-    try:
-        object_id = ObjectId(user_id)
-        appt_id = ObjectId(appointment_id)
-    except:
-        return jsonify({"error": "ID invalide"}), 400
-    
-    appointment = mongo.db.appointments.find_one({"_id": appt_id, "doctor_id": object_id})
-    if not appointment:
-        return jsonify({"error": "Rendez-vous non trouvé ou non autorisé"}), 404
-    
+def update_profile():
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    update_data = {k: v for k, v in data.items() if k in ['nom', 'prenom', 'specialite', 'zone_geographique', 'image']}
+    mongo.db.medecins.update_one(
+        {"_id": ObjectId(current_user_id)},
+        {"$set": update_data}
+    )
+    return jsonify({"message": "Profil mis à jour"}), 200
+
+@profile.route('/availability', methods=['PUT'])
+@jwt_required()
+def update_availability():
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    mongo.db.medecins.update_one(
+        {"_id": ObjectId(current_user_id)},
+        {"$set": {"availability": data['availability']}}
+    )
+    return jsonify({"message": "Disponibilités mises à jour"}), 200
+
+@profile.route('/appointments/<appointmentId>/accept', methods=['PUT'])
+@jwt_required()
+def accept_appointment(appointmentId):
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
+
     mongo.db.appointments.update_one(
-        {"_id": appt_id},
+        {"_id": ObjectId(appointmentId), "doctor_email": doctor['email']},
         {"$set": {"status": "accepted"}}
     )
-    
     return jsonify({"message": "Rendez-vous accepté"}), 200
 
-@profile.route("/appointments/<appointment_id>/reject", methods=["PUT"])
+@profile.route('/appointments/<appointmentId>/reject', methods=['PUT'])
 @jwt_required()
-def reject_appointment(appointment_id):
-    user_id = get_jwt_identity()
-    
-    try:
-        object_id = ObjectId(user_id)
-        appt_id = ObjectId(appointment_id)
-    except:
-        return jsonify({"error": "ID invalide"}), 400
-    
-    appointment = mongo.db.appointments.find_one({"_id": appt_id, "doctor_id": object_id})
-    if not appointment:
-        return jsonify({"error": "Rendez-vous non trouvé ou non autorisé"}), 404
-    
-    mongo.db.appointments.update_one(
-        {"_id": appt_id},
-        {"$set": {"status": "rejected"}}
-    )
-    
-    return jsonify({"message": "Rendez-vous rejeté"}), 200
+def reject_appointment(appointmentId):
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
 
-@profile.route("/appointments/<appointment_id>", methods=["DELETE"])
+    result = mongo.db.appointments.delete_one(
+        {"_id": ObjectId(appointmentId), "doctor_email": doctor['email']}
+    )
+    if result.deleted_count == 1:
+        return jsonify({"message": "Rendez-vous rejeté et supprimé"}), 200
+    else:
+        return jsonify({"message": "Rendez-vous non trouvé"}), 404
+
+@profile.route('/appointments/<appointmentId>', methods=['DELETE'])
 @jwt_required()
-def cancel_appointment(appointment_id):
-    user_id = get_jwt_identity()
-    
-    try:
-        object_id = ObjectId(user_id)
-        appt_id = ObjectId(appointment_id)
-    except:
-        return jsonify({"error": "ID invalide"}), 400
-    
-    appointment = mongo.db.appointments.find_one({"_id": appt_id, "doctor_id": object_id})
-    if not appointment:
-        return jsonify({"error": "Rendez-vous non trouvé ou non autorisé"}), 404
-    
-    mongo.db.appointments.delete_one({"_id": appt_id})
-    
+def cancel_appointment(appointmentId):
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
+
+    mongo.db.appointments.delete_one(
+        {"_id": ObjectId(appointmentId), "doctor_email": doctor['email']}
+    )
     return jsonify({"message": "Rendez-vous annulé"}), 200
 
-@profile.route("/documents/<document_id>/annotate", methods=["PUT"])
+@profile.route('/documents/<documentId>/annotate', methods=['PUT'])
 @jwt_required()
-def annotate_document(document_id):
-    user_id = get_jwt_identity()
-    data = request.json
-    
-    if "annotation" not in data:
-        return jsonify({"error": "Annotation requise"}), 400
-    
-    try:
-        object_id = ObjectId(user_id)
-        doc_id = ObjectId(document_id)
-    except:
-        return jsonify({"error": "ID invalide"}), 400
-    
-    document = mongo.db.documents.find_one({"_id": doc_id, "doctor_id": object_id})
-    if not document:
-        return jsonify({"error": "Document non trouvé ou non autorisé"}), 404
-    
+def annotate_document(documentId):
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
+
+    data = request.get_json()
     mongo.db.documents.update_one(
-        {"_id": doc_id},
-        {"$push": {"annotations": data["annotation"]}}
+        {"_id": ObjectId(documentId), "doctor_email": doctor['email']},
+        {"$push": {"annotations": data['annotation']}}
     )
-    
     return jsonify({"message": "Annotation ajoutée"}), 200
+
+@profile.route('/consultations', methods=['POST'])
+@jwt_required()
+def save_consultation():
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
+
+    data = request.get_json()
+    consultation_data = {
+        "appointmentId": data['appointmentId'],
+        "diagnosis": data['diagnosis'],
+        "prescription": data['prescription'],
+        "documents": data['documents'],
+        "doctor_email": doctor['email'],
+        "created_at": datetime.datetime.utcnow()
+    }
+    mongo.db.consultations.insert_one(consultation_data)
+    return jsonify({"message": "Consultation enregistrée"}), 201
+
+@profile.route('/consultations/<consultationId>/add-document', methods=['POST'])
+@jwt_required()
+def add_document_to_consultation(consultationId):
+    current_user_id = get_jwt_identity()
+    doctor = mongo.db.medecins.find_one({"_id": ObjectId(current_user_id)})
+    if not doctor:
+        return jsonify({"message": "Médecin non trouvé"}), 404
+
+    if 'file' not in request.files:
+        return jsonify({"error": "Aucun fichier fourni"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Aucun fichier sélectionné"}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        consultation = mongo.db.consultations.find_one({"_id": ObjectId(consultationId)})
+        if not consultation:
+            return jsonify({"message": "Consultation non trouvée"}), 404
+
+        document = {
+            "path": f"/Uploads/{filename}",
+            "name": file.filename,
+            "patient_name": consultation['patient_name'],
+            "doctor_email": doctor['email'],
+            "appointmentId": ObjectId(consultation['appointmentId']),
+            "consultationId": ObjectId(consultationId),
+            "annotations": []
+        }
+        result = mongo.db.documents.insert_one(document)
+        doc_id = str(result.inserted_id)
+
+        mongo.db.consultations.update_one(
+            {"_id": ObjectId(consultationId), "doctor_email": doctor['email']},
+            {"$push": {"document_ids": doc_id}}
+        )
+        return jsonify({"message": "Document ajouté à la consultation", "documentId": doc_id}), 200
+    return jsonify({"error": "Type de fichier non autorisé"}), 400
